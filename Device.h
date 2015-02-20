@@ -4,9 +4,18 @@
 class Device
 {
  public:
-  virtual const char *getName();
-  virtual byte peek(int addr);
-  virtual void poke(int addr, byte b);
+  Device();
+  ~Device();
+
+  virtual byte peek(int addr) {
+    throw "Missing implementation of peek";
+  };
+  
+  virtual void poke(int addr, byte b) {
+    throw "Missing implementation of poke";
+  };
+
+  virtual const char *getName() { return "Abstract Device"; };
 };
 
 #endif

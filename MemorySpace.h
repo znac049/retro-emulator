@@ -9,7 +9,10 @@ class MemorySpace
   MemorySpace(int size);
   ~MemorySpace();
 
-  byte get(int addr);
+  byte peek(int addr);
+  void poke(int addr, byte b);
+
+  void registerDevice(Device *dev, int addr);
 };
 
 #endif

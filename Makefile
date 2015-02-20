@@ -1,4 +1,4 @@
-SRCS=AtariEm.cpp MemorySpace.cpp MemoryDevice.cpp
+SRCS=AtariEm.cpp MemorySpace.cpp MemoryDevice.cpp Device.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 CC=gcc

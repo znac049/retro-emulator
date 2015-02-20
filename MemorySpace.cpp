@@ -9,7 +9,16 @@ MemorySpace::~MemorySpace()
 {
 }
 
-byte MemorySpace::get(int addr)
+byte MemorySpace::peek(int addr)
+{
+  return 0;
+}
+
+void MemorySpace::poke(int addr, byte b)
+{
+}
+
+void MemorySpace::registerDevice(Device *dev, int addr)
 {
 }
 
