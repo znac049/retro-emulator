@@ -1,4 +1,6 @@
-SRCS=AtariEm.cpp MemorySpace.cpp MemoryDevice.cpp Device.cpp
+SRCS=AtariEm.cpp MemorySpace.cpp MemoryDevice.cpp CPU.cpp CPUState.cpp \
+	Instructions.cpp
+
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 CC=gcc
@@ -7,7 +9,7 @@ RM=rm -f
 
 CPPFLAGS=-g -pthread
 LDFLAGS=-g 
-LDLIBS=
+LDLIBS=-lrt
 
 all: AtariEm
 

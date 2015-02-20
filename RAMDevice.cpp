@@ -3,26 +3,28 @@
 #include <malloc.h>
 
 #include "AtariEm.h"
-#include "MemoryDevice.h"
+#include "RAMDevice.h"
 
-MemoryDevice::MemoryDevice(int size_in_bytes, short int ro)
+RAMDevice::RAMDevice(int size_in_bytes)
+  : Device()
 {
-  read_only = ro;
   ram_size = size_in_bytes;
   bytes = (byte *) malloc(ram_size);
+
+  SetName("RAM");
 
   for (int i = 0; i < ram_size; i++) {
     bytes[i] = 0;
   }
 }
 
-MemoryDevice::~MemoryDevice()
+RAMDevice::~RAMDevice()
 {
   free(bytes);
   ram_size = 0;
 }
 
-byte MemoryDevice::peek(int addr)
+byte RAMDevice::Get(int addr)
 {
   if ((addr < 0) || (addr >= ram_size)) {
     throw "Address out of range in RAM Getter";
@@ -31,24 +33,11 @@ byte MemoryDevice::peek(int addr)
   return bytes[addr];
 }
 
-void MemoryDevice::poke(int addr, byte b)
+void RAMDevice::Set(int addr, byte b)
 {
-  if (read_only) {
-    throw "Attempt to write to readonly memory";
-  }
-
   if ((addr < 0) || (addr >= ram_size)) {
     throw "Address out of range in RAM Setter";
   }
 
   bytes[addr] = b;
-}
-
-const char *MemoryDevice::getName()
-{
-  if (read_only) {
-    return "ROM";
-  }
-  
-  return "RAM";
 }

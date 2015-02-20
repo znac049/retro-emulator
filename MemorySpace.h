@@ -1,6 +1,8 @@
 #ifndef _MEMORYSPACE_H_
 #define _MEMORYSPACE_H_
 
+#include "AtariEm.h"
+
 class MemorySpace
 {
  private:
@@ -12,7 +14,8 @@ class MemorySpace
   byte peek(int addr);
   void poke(int addr, byte b);
 
-  void registerDevice(Device *dev, int addr);
+  word peekw(int addr);
+  void pokew(int addr, word w);
 };
 
 #endif

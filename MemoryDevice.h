@@ -16,6 +16,7 @@ class MemoryDevice : public Device
 
   byte peek(int addr);
   void poke(int addr, byte b);
+  const char *getName();
 };
 
 #endif
