@@ -15,6 +15,8 @@ CPU::CPU(MemoryMap *mem) {
 
   memory = mem;
   state = new CPUState(memory);
+
+  memory->dump();
 }
 
 CPU::~CPU() {

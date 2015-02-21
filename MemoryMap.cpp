@@ -16,9 +16,9 @@ MemoryMap::~MemoryMap()
 
 bool MemoryMap::connect(Device *dev, int addr)
 {
-  printf("Connecting device '%s'\n", dev->getName());
+  printf("Connecting device '%s' at base address $%04x\n", dev->getName(), addr);
 
-  add(dev, addr, dev->getSize());
+  add(dev, addr, addr + dev->getSize() - 1);
 
   return true;
 }
@@ -43,7 +43,7 @@ void MemoryMap::poke(int addr, byte b)
   if (ent != NULL) {
     ent->device->poke(addr - ent->startAddress, b);
 
-    printf("Wr $%04x (%s) = $%02x\n", addr, ent->device->getName(), b);
+    //printf("Wr $%04x (%s) = $%02x\n", addr, ent->device->getName(), b);
   }
 }
 
@@ -60,7 +60,13 @@ void MemoryMap::pokew(int addr, word w)
 
 void MemoryMap::add(Device *dev, int from, int to)
 {
-  Node *ent = new Node();
+  Node *ent;
+
+  if (from > to) {
+    throw "start is after end when adding device to memory map";
+  }
+
+  ent = new Node();
 
   ent->startAddress = from;
   ent->endAddress = to;
@@ -78,14 +84,14 @@ MemoryMap::Node *MemoryMap::insert(Node *ent, Node *node)
   }
 
   if (node->startAddress == ent->startAddress) {
-    throw "Overlapping devices";
+    throw "Overlapping devices when adding device to memory map";
   }
 
-  if (node->startAddress < ent->startAddress) {
-    node->before = insert(ent, ent->before);
+  if (ent->startAddress < node->startAddress) {
+    node->before = insert(ent, node->before);
   }
   else {
-    node->after = insert(ent, ent->after);
+    node->after = insert(ent, node->after);
   }
 
   return node;
@@ -110,4 +116,33 @@ MemoryMap::Node *MemoryMap::findDevice(int addr)
 
   printf("No device in memory map at address $%04x\n", addr);
   return NULL;
+}
+
+void MemoryMap::dump()
+{
+  printf("Memory Map:\n");
+
+  dumpNode(head);
+}
+
+void MemoryMap::dumpNode(Node *ent)
+{
+  if (ent->before != NULL) {
+    dumpNode(ent->before);
+  }
+
+  printf("%-20s ", ent->device->getName());
+
+  if (ent->startAddress == ent->endAddress) {
+    printf("$%04x         ", ent->startAddress);
+  }
+  else {
+    printf("$%04x - $%04x ", ent->startAddress, ent->endAddress);
+  }
+
+  printf("(%d bytes)\n", ent->device->getSize());
+
+  if (ent->after != NULL) {
+    dumpNode(ent->after);
+  }
 }

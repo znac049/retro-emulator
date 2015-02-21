@@ -24,6 +24,7 @@ class MemoryMap
  private:
   Node *insert(Node *ent, Node *node);
   Node *findDevice(int addr);
+  void dumpNode(Node *ent);
 
  public:
   MemoryMap(int size);
@@ -38,6 +39,7 @@ class MemoryMap
   void pokew(int addr, word w);
 
   void add(Device *dev, int from, int to);
+  void dump();
 };
 
 #endif

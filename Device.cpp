@@ -1,9 +1,37 @@
+#include <string.h>
+#include <malloc.h>
+
 #include "AtariEm.h"
 #include "Device.h"
 
+Device::Device()
+{
+  name = NULL;
+  setName("Core Device");
+}
+
+Device::Device(const char *newName)
+{
+  name = strdup(newName);
+}
+
+Device::~Device()
+{
+  free(name);
+}
+
 const char *Device::getName()
 {
-  return "Unknown Core Device";
+  return name;
+}
+
+void Device::setName(const char *newName)
+{
+  if (name != NULL) {
+    free(name);
+  }
+
+  name = strdup(newName);
 }
 
 int Device::getSize() {

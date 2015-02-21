@@ -5,8 +5,17 @@
 
 class Device
 {
+ protected:
+  char *name;
+
  public:
-  virtual const char *getName();
+  Device();
+  Device(const char *newName);
+  ~Device();
+
+  const char *getName();
+  void setName(const char *newName);
+
   virtual int getSize();
   virtual byte peek(int addr);
   virtual void poke(int addr, byte b);

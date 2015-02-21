@@ -5,7 +5,8 @@
 #include "AtariEm.h"
 #include "MemoryDevice.h"
 
-MemoryDevice::MemoryDevice(int size_in_bytes, short int ro)
+MemoryDevice::MemoryDevice(int size_in_bytes, short int ro) :
+  Device()
 {
   read_only = ro;
   ram_size = size_in_bytes;
@@ -13,6 +14,13 @@ MemoryDevice::MemoryDevice(int size_in_bytes, short int ro)
 
   for (int i = 0; i < ram_size; i++) {
     bytes[i] = 0;
+  }
+
+  if (read_only) {
+    setName("ROM");
+  }
+  else {
+    setName("RAM");
   }
 }
 
@@ -42,15 +50,6 @@ void MemoryDevice::poke(int addr, byte b)
   }
 
   bytes[addr] = b;
-}
-
-const char *MemoryDevice::getName()
-{
-  if (read_only) {
-    return "ROM";
-  }
-  
-  return "RAM";
 }
 
 int MemoryDevice::getSize()
