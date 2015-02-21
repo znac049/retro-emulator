@@ -8,7 +8,7 @@
 #ifndef CPU_H_
 #define CPU_H_
 
-#include "MemorySpace.h"
+#include "MemoryMap.h"
 #include "CPUState.h"
 
 #define P_CARRY       0x01
@@ -37,7 +37,7 @@
 
 class CPU {
  private:
-  MemorySpace *memory;
+  MemoryMap *memory;
   CPUState *state;
 
   int irAddressMode; // Bits 3-5 of IR:  [ | | |X|X|X| | ]
@@ -142,7 +142,7 @@ class CPU {
   long getNanoTicks();
 
  public:
-  CPU(MemorySpace *mem);
+  CPU(MemoryMap *mem);
   ~CPU();
 
   void reset();

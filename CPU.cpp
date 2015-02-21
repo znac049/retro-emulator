@@ -10,7 +10,7 @@
 #include "Instructions.h"
 #include "CPU.h"
 
-CPU::CPU(MemorySpace *mem) {
+CPU::CPU(MemoryMap *mem) {
   behaviour = NMOS_WITH_INDIRECT_JMP_BUG;
 
   memory = mem;

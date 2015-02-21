@@ -52,3 +52,8 @@ const char *MemoryDevice::getName()
   
   return "RAM";
 }
+
+int MemoryDevice::getSize()
+{
+  return ram_size;
+}

@@ -1,5 +1,5 @@
-SRCS=AtariEm.cpp MemorySpace.cpp MemoryDevice.cpp CPU.cpp CPUState.cpp \
-	Instructions.cpp
+SRCS=AtariEm.cpp MemoryDevice.cpp CPU.cpp CPUState.cpp \
+	Instructions.cpp Device.cpp MemoryMap.cpp
 
 OBJS=$(subst .cpp,.o,$(SRCS))
 

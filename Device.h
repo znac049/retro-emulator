@@ -1,12 +1,15 @@
-#ifndef _DEVICE_H
+#ifndef _DEVICE_H_
 #define _DEVICE_H_
+
+#include "AtariEm.h"
 
 class Device
 {
  public:
-  const char *getName();
-  byte peek(int addr);
-  void poke(int addr, byte b);
+  virtual const char *getName();
+  virtual int getSize();
+  virtual byte peek(int addr);
+  virtual void poke(int addr, byte b);
 };
 
 #endif

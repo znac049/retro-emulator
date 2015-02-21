@@ -12,7 +12,7 @@
 #include "CPUState.h"
 #include "Instructions.h"
 
-CPUState::CPUState(MemorySpace *mem) {
+CPUState::CPUState(MemoryMap *mem) {
   memory = mem;
 
   a = 0;

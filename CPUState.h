@@ -10,11 +10,11 @@
 
 #include <ctype.h>
 
-#include "MemorySpace.h"
+#include "MemoryMap.h"
 
 class CPUState {
  private:
-  MemorySpace *memory;
+  MemoryMap *memory;
 
  public:
   /* Accumulator */
@@ -58,7 +58,7 @@ class CPUState {
   word argsw() { return (((word)args[0])<<8) | args[1]; }
 
  public:
-  CPUState(MemorySpace *mem);
+  CPUState(MemoryMap *mem);
   ~CPUState();
 
   byte getStatusFlag();
