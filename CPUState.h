@@ -55,11 +55,13 @@ class CPUState {
   long stepCounter;
 
  private:
-  word argsw() { return (((word)args[0])<<8) | args[1]; }
+  word argsw() { return (((word)args[1])<<8) | args[0]; }
 
  public:
   CPUState(MemoryMap *mem);
   ~CPUState();
+
+  void reset();
 
   byte getStatusFlag();
   void getStatusFlagAsString(char *str, int len);

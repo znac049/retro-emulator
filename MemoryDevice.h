@@ -6,7 +6,7 @@
 class MemoryDevice : public Device
 {
  private:
-  short int read_only;
+  bool read_only;
   byte *bytes;
   int ram_size;
 
@@ -16,6 +16,9 @@ class MemoryDevice : public Device
 
   byte peek(int addr);
   void poke(int addr, byte b);
+
+  void _set(int addr, byte b);
+
   const char *getName();
   int getSize();
 };

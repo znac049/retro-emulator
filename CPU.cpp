@@ -1,10 +1,4 @@
-/*
- * CPU.cpp
- *
- *  Created on: 19 Feb 2015
- *      Author: bob
- */
-
+#include <stdio.h>
 #include <time.h>
 
 #include "Instructions.h"
@@ -24,35 +18,7 @@ CPU::~CPU() {
 
 void CPU::reset()
 {
-  state->sp = 0xff;
-
-  // Set the PC to the address stored in the reset vector
-  state->pc = memory->peekw(RST_VECTOR_L);
-
-  // Clear instruction register.
-  state->ir = 0;
-
-  // Clear status register bits.
-  state->carryFlag = false;
-  state->zeroFlag = false;
-  state->irqDisableFlag = false;
-  state->decimalModeFlag = false;
-  state->breakFlag = false;
-  state->overflowFlag = false;
-  state->negativeFlag = false;
-
-  state->irqAsserted = false;
-
-  // Clear illegal opcode trap.
-  state->opTrap = false;
-
-  // Reset step counter
-  state->stepCounter = 0L;
-
-  // Reset registers.
-  state->a = 0;
-  state->x = 0;
-  state->y = 0;
+  state->reset();
 }
 
 void CPU::step()
@@ -74,6 +40,8 @@ void CPU::step()
   irAddressMode = (state->ir >> 2) & 0x07;
   irOpMode = state->ir & 0x03;
 
+  //printf("IR=$%02x  AMode=%d  OpMode=%d\n", state->ir, irAddressMode, irOpMode);
+
   incrementPC();
 
   clearOpTrap();
@@ -85,6 +53,8 @@ void CPU::step()
     // Increment PC after reading
     incrementPC();
   }
+
+  //printf("instSize=%d\n", state->instSize);
 
   state->stepCounter++;
 
@@ -1210,4 +1180,17 @@ long CPU::getNanoTicks()
   clock_gettime(CLOCK_REALTIME, &ts);
 
   return ts.tv_nsec;
+}
+
+void CPU::summary()
+{
+  char flags[64];
+  char src[512];
+
+  state->disassembleOp(src, sizeof(src));
+  printf("$%04x: %-20s ", state->lastPc, src);
+
+  state->getStatusFlagAsString(flags, sizeof(flags));
+  printf("PC: $%04x  A:$%02x X:$%02x Y:$%02x SP:$%02x Flags: %s\n",
+	 state->pc, state->a, state->x, state->y, state->sp, flags);
 }

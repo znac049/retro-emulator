@@ -52,6 +52,15 @@ void MemoryDevice::poke(int addr, byte b)
   bytes[addr] = b;
 }
 
+void MemoryDevice::_set(int addr, byte b)
+{
+  if ((addr < 0) || (addr >= ram_size)) {
+    throw "Address out of range in RAM Setter";
+  }
+
+  bytes[addr] = b;
+}
+
 int MemoryDevice::getSize()
 {
   return ram_size;

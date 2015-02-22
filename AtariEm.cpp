@@ -4,6 +4,7 @@
 #include "AtariEm.h"
 #include "MemoryDevice.h"
 #include "Pokey.h"
+#include "ADlxDigitalOutputs.h"
 #include "CPU.h"
 
 int main(int argc, char *argv[])
@@ -12,10 +13,13 @@ int main(int argc, char *argv[])
   MemoryDevice rom(8192, 1);
   MemoryDevice vectorRam(2048, 0);
   MemoryDevice vectorRom(4096, 1);
+  ADlxDigitalOutputs ops;
   Pokey pokey;
 
   MemoryMap mm(0xffff + 1);
   CPU *proc;
+
+  mm.connect(&ops, 0x3c00);
 
   vectorRom.setName("Vector ROM");
   mm.connect(&vectorRom, 0x4800);
@@ -29,24 +33,21 @@ int main(int argc, char *argv[])
   mm.connect(&rom, 0x6000);
   mm.connect(&rom, 0xe000);
 
+  rom.load("roms/adlx.rom");
+
   proc = new CPU(&mm);
   proc->reset();
 
-  printf("Hello\n");
+  printf("Emulator starting.\n");
 
   try {
     for (int i=0; i<2048; i++) {
-      mm.poke(i, i & 0xff);
+      mm.poke(i, 0);
     }
 
-    for (int i=0; i<2048; i++) {
-      if (ram.peek(i) != (i & 0xff)) {
-	printf("Error at address $%04x\n", i);
-      }
-    }
-
-    for (int i=0; i<64; i++) {
-      mm.peek(i<<10);
+    for (int i=0; i<5000; i++) {
+      proc->step();
+      proc->summary();
     }
   }
   catch (const char *msg) {

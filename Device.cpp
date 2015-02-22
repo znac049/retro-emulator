@@ -47,3 +47,41 @@ void Device::poke(int addr, byte b)
 {
   throw "low level poke should have been overridden";
 }
+
+bool Device::save(const char *loc)
+{
+  return false;
+}
+
+int Device::load(const char *loc)
+{
+  FILE *fd = fopen(loc, "rb");
+  int size = getSize();
+  int addr = 0;
+
+  printf("Device::load('%s')\n", loc);
+
+  if (fd) {
+    printf("Reading up to %d bytes from '%s'...\n", size, loc);
+
+    while ((addr < size) && (!feof(fd))) {
+      int b = fgetc(fd);
+
+      if (b != EOF) {
+	_set(addr, (byte) (b & 0xff));
+	addr++;
+      }
+    }
+
+    printf("...read %d bytes.\n", addr);
+
+    fclose(fd);
+  }
+
+  return addr;
+}
+
+void Device::getLabel(char *str, int len, int addr)
+{
+  snprintf(str, len, "$%04x", addr);
+}

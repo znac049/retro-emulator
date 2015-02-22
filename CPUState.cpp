@@ -1,10 +1,3 @@
-/*
- * CPUState.cpp
- *
- *  Created on: 19 Feb 2015
- *      Author: bob
- */
-
 #include <stdio.h>
 #include <string.h>
 
@@ -15,15 +8,24 @@
 CPUState::CPUState(MemoryMap *mem) {
   memory = mem;
 
-  a = 0;
+  reset();
+}
 
+CPUState::~CPUState() {
+}
+
+void CPUState::reset()
+{
+  a = 0;
   x = y = 0;
 
   sp = 0xff;
 
   pc = memory->peekw(RST_VECTOR_L);
+  printf("PC after reset vector = $%04x\n", pc);
 
-  ir = 0;
+  ir = memory->peek(pc);
+
   lastPc = 0;
 
   instSize = 0;
@@ -40,9 +42,6 @@ CPUState::CPUState(MemoryMap *mem) {
   overflowFlag = false;
 
   stepCounter = 0L;
-}
-
-CPUState::~CPUState() {
 }
 
 byte CPUState::getStatusFlag()
@@ -133,19 +132,31 @@ void CPUState::disassembleOp(char *str, int len)
     break;
 
   case MODE_REL:
-    snprintf(str, len, "%s $02x", mnemonic, args[0]);
+    snprintf(str, len, "%s $%02x", mnemonic, args[0]);
     break;
 
   case MODE_ZPG:
-    snprintf(str, len, "%s $02x", mnemonic, args[0]);
+    snprintf(str, len, "%s $%02x", mnemonic, args[0]);
     break;
 
   case MODE_ZPX:
-    snprintf(str, len, "%s $02x,X", mnemonic, args[0]);
+    snprintf(str, len, "%s $%02x,X", mnemonic, args[0]);
     break;
 
   case MODE_ZPY:
-    snprintf(str, len, "%s $02x,Y", mnemonic, args[0]);
+    snprintf(str, len, "%s $%02x,Y", mnemonic, args[0]);
+    break;
+
+  case MODE_IMP:
+    snprintf(str, len, "%s", mnemonic);
+    break;
+
+  case MODE_ACC:
+    snprintf(str, len, "%s", mnemonic);
+    break;
+
+  default:
+    snprintf(str, len, "!!!! IR=$%02x mode=%d", ir, Instructions::mode(ir));
     break;
   }
 }

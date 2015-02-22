@@ -147,6 +147,7 @@ class CPU {
 
   void reset();
   void step();
+  void summary();
 };
 
 #endif /* CPU_H_ */

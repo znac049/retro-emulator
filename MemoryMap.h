@@ -40,6 +40,8 @@ class MemoryMap
 
   void add(Device *dev, int from, int to);
   void dump();
+
+  void getLabel(char *str, int len, int addr);
 };
 
 #endif

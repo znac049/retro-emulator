@@ -16,9 +16,17 @@ class Device
   const char *getName();
   void setName(const char *newName);
 
+  void getLabel(char *str, int len, int addr);
+
   virtual int getSize();
   virtual byte peek(int addr);
   virtual void poke(int addr, byte b);
+
+  virtual void _set(int addr, byte b) {poke(addr, b);};
+
+  virtual bool save(const char *loc);
+  virtual int load(const char *loc);
 };
 
 #endif
+
