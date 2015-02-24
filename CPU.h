@@ -147,7 +147,11 @@ class CPU {
 
   void reset();
   void step();
+  void run();
   void summary();
+
+  CPUState *getState();
+  MemoryMap *getMemory();
 };
 
 #endif /* CPU_H_ */

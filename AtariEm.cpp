@@ -12,6 +12,7 @@
 #include "StartVGDevice.h"
 #include "WatchDog.h"
 #include "CPU.h"
+#include "Console.h"
 
 int main(int argc, char *argv[])
 {
@@ -29,7 +30,9 @@ int main(int argc, char *argv[])
   Pokey pokey;
 
   MemoryMap mm(0xffff + 1);
+
   CPU *proc;
+  Console *tty;
 
   vectorRam.setName("Vector RAM");
   vectorRom.setName("Vector ROM");
@@ -55,21 +58,11 @@ int main(int argc, char *argv[])
   proc = new CPU(&mm);
   proc->reset();
 
-  printf("Emulator starting.\n");
+  tty = new Console(proc);
+  tty->commandLoop();
 
-  try {
-    for (int i=0; i<2048; i++) {
-      mm.poke(i, 0);
-    }
-
-    for (int i=0; i<50000; i++) {
-      proc->step();
-      proc->summary();
-    }
-  }
-  catch (const char *msg) {
-    printf("Caught exception: '%s'\n", msg);
-  }
+  delete proc;
+  delete tty;
 
   return 0;
 }

@@ -21,6 +21,13 @@ void CPU::reset()
   state->reset();
 }
 
+void CPU::run()
+{
+  while (state->running) {
+    step();
+  }
+}
+
 void CPU::step()
 {
   opBeginTime = getNanoTicks();
@@ -1194,4 +1201,12 @@ void CPU::summary()
   state->getStatusFlagAsString(flags, sizeof(flags));
   printf("PC: $%04x  A:$%02x X:$%02x Y:$%02x SP:$%02x Flags: %s\n",
 	 state->pc, state->a, state->x, state->y, state->sp, flags);
+}
+
+CPUState *CPU::getState() {
+  return state;
+}
+
+MemoryMap *CPU::getMemory() {
+  return memory;
 }

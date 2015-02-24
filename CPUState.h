@@ -54,6 +54,8 @@ class CPUState {
 
   long stepCounter;
 
+  bool running;
+
  private:
   word argsw() { return (((word)args[1])<<8) | args[0]; }
 

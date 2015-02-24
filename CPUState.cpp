@@ -42,6 +42,7 @@ void CPUState::reset()
   overflowFlag = false;
 
   stepCounter = 0L;
+  running = false;
 }
 
 byte CPUState::getStatusFlag()
