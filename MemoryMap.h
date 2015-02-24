@@ -14,8 +14,7 @@ class MemoryMap
     int endAddress;
     Device *device;
 
-    Node *before;
-    Node *after;
+    Node *next;
   };
 
   typedef struct Node Node;
@@ -41,7 +40,7 @@ class MemoryMap
   void add(Device *dev, int from, int to);
   void dump();
 
-  void getLabel(char *str, int len, int addr);
+  bool getAddressName(char *str, int len, int addr);
 };
 
 #endif

@@ -1,6 +1,8 @@
 SRCS=AtariEm.cpp MemoryDevice.cpp CPU.cpp CPUState.cpp \
 	Instructions.cpp Device.cpp MemoryMap.cpp Pokey.cpp \
-	ADlxDigitalOutputs.cpp
+	ADlxOutputs.cpp \
+	ADlxSwitches.cpp ADlxInputs.cpp ADlxOptionSwitches.cpp \
+	VectorGenerator.cpp StartVGDevice.cpp 
 
 OBJS=$(subst .cpp,.o,$(SRCS))
 
@@ -10,7 +12,7 @@ RM=rm -f
 
 CPPFLAGS=-g -pthread
 LDFLAGS=-g 
-LDLIBS=-lrt
+LDLIBS=-lrt -lncurses
 
 all: AtariEm
 

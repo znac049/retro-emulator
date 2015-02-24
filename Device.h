@@ -16,7 +16,7 @@ class Device
   const char *getName();
   void setName(const char *newName);
 
-  void getLabel(char *str, int len, int addr);
+  virtual bool getAddressName(char *str, int len, int addr);
 
   virtual int getSize();
   virtual byte peek(int addr);

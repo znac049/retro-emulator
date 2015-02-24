@@ -1,23 +1,22 @@
-#ifndef _ADLX_DIG_OP_H_
-#define _ADLX_DIG_OP_H_
+#ifndef _ADLX_OUTPUTS_H_
+#define _ADLX_OUTPUTS_H_
 
 #include "Device.h"
 
-#define ADLX_DIG_OP_SIZE 8
+#define ADLX_OUTPUTS_SIZE 8
 
-class ADlxDigitalOutputs : public Device
+class ADlxOutputs : public Device
 {
  private:
   static const char *portNames[];
-  bool outputs[ADLX_DIG_OP_SIZE];
+  bool outputs[ADLX_OUTPUTS_SIZE];
 
  public:
-  ADlxDigitalOutputs();
-  ~ADlxDigitalOutputs();
+  ADlxOutputs();
+  ~ADlxOutputs();
 
   byte peek(int addr);
   void poke(int addr, byte b);
-  const char *getName();
   int getSize();
 };
 

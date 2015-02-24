@@ -3,41 +3,41 @@
 #include <malloc.h>
 
 #include "AtariEm.h"
-#include "ADlxDigitalOutputs.h"
+#include "ADlxOutputs.h"
 
-const char *ADlxDigitalOutputs::portNames[] = {
-  "1 Player Start LED",
-  "2 Player Start LED",
-  "Not used!",
-  "Ship Thrust Sound",
-  "Bank Select",
-  "Left Coin Counter",
-  "Centre Coin Counter",
-  "Right Coin Counter"
+const char *ADlxOutputs::portNames[] = {
+  "Player1StartLED",
+  "Player2StartLED",
+  "Not_used2",
+  "ShipThrustSound",
+  "BankSelect",
+  "LeftCoinCounter",
+  "CentreCoinCounter",
+  "RightCoinCounter"
 };
 
-ADlxDigitalOutputs::ADlxDigitalOutputs() : Device("ADlxDigOutputs")
+ADlxOutputs::ADlxOutputs() : Device("ADlxOutputs")
 {
-  for (int i=0; i<ADLX_DIG_OP_SIZE; i++) {
+  for (int i=0; i<ADLX_OUTPUTS_SIZE; i++) {
     outputs[i] = false;
   }
 }
 
-ADlxDigitalOutputs::~ADlxDigitalOutputs()
+ADlxOutputs::~ADlxOutputs()
 {
 }
 
-byte ADlxDigitalOutputs::peek(int addr)
+byte ADlxOutputs::peek(int addr)
 {
   throw "Attempt to read from ADlx output ports";
 
   return 0xff;
 }
 
-void ADlxDigitalOutputs::poke(int addr, byte b)
+void ADlxOutputs::poke(int addr, byte b)
 {
-  if ((addr < 0) || (addr >= ADLX_DIG_OP_SIZE)) {
-    throw "Address out of range in ADlxDigitalOutputs::poke";
+  if ((addr < 0) || (addr >= ADLX_OUTPUTS_SIZE)) {
+    throw "Address out of range in ADlxOutputs::poke";
   }
 
   b = (b==0)?false:true;
@@ -49,8 +49,8 @@ void ADlxDigitalOutputs::poke(int addr, byte b)
   }
 }
 
-int ADlxDigitalOutputs::getSize()
+int ADlxOutputs::getSize()
 {
-  return ADLX_DIG_OP_SIZE;
+  return ADLX_OUTPUTS_SIZE;
 }
 

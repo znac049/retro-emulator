@@ -81,7 +81,7 @@ int Device::load(const char *loc)
   return addr;
 }
 
-void Device::getLabel(char *str, int len, int addr)
+bool Device::getAddressName(char *str, int len, int addr)
 {
-  snprintf(str, len, "$%04x", addr);
+  return false;
 }

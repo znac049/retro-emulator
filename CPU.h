@@ -135,7 +135,7 @@ class CPU {
   int xAddress(int lowByte, int hiByte);
   int yAddress(int lowByte, int hiByte);
   int zpxAddress(int zp);
-  int relAddress(int offset);
+  int relAddress(byte offset);
   int zpyAddress(int zp);
 
   void delayLoop(int opcode);

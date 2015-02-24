@@ -82,19 +82,20 @@ byte CPUState::getStatusFlag()
 void CPUState::getStatusFlagAsString(char *str, int len)
 {
   snprintf(str, len, "[%c%c%c%c%c%c%c%c]",
-	   negativeFlag?'N':'.',
-	   overflowFlag?'V':'.',
+	   negativeFlag?'N':'n',
+	   overflowFlag?'V':'v',
 	   '-',
-	   breakFlag?'B':'.',
-	   decimalModeFlag?'D':'.',
-	   irqDisableFlag?'I':'.',
-	   zeroFlag?'Z':'.',
-	   carryFlag?'C':'.');
+	   breakFlag?'B':'b',
+	   decimalModeFlag?'D':'d',
+	   irqDisableFlag?'I':'i',
+	   zeroFlag?'Z':'z',
+	   carryFlag?'C':'c');
 }
 
 void CPUState::disassembleOp(char *str, int len)
 {
   const char *mnemonic = Instructions::mnemonic(ir);
+  char address[256];
 
   if (mnemonic == NULL) {
     strncpy(str, "???", len);
@@ -104,15 +105,18 @@ void CPUState::disassembleOp(char *str, int len)
 
   switch (Instructions::mode(ir)) {
   case MODE_ABS:
-    snprintf(str, len, "%s $%04x", mnemonic, argsw());
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s %s", mnemonic, address);
     break;
 
   case MODE_ABX:
-    snprintf(str, len, "%s $%04x,X", mnemonic, argsw());
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s %s,X", mnemonic, address);
     break;
 
   case MODE_ABY:
-    snprintf(str, len, "%s $%04x,Y", mnemonic, argsw());
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s %s,Y", mnemonic, address);
     break;
 
   case MODE_IMM:
@@ -120,31 +124,38 @@ void CPUState::disassembleOp(char *str, int len)
     break;
 
   case MODE_IND:
-    snprintf(str, len, "%s ($%04x)", mnemonic, argsw());
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s (%s)", mnemonic, address);
     break;
 
   case MODE_INX:
-    snprintf(str, len, "%s ($%02x,X)", mnemonic, args[0]);
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s (%s,X)", mnemonic, address);
     break;
 
   case MODE_INY:
-    snprintf(str, len, "%s ($%02x),Y", mnemonic, args[0]);
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s ($%02x),Y", mnemonic, address);
     break;
 
   case MODE_REL:
-    snprintf(str, len, "%s $%02x", mnemonic, args[0]);
+    memory->getAddressName(address, sizeof(address), pc + (signed char)args[0]);
+    snprintf(str, len, "%s %s", mnemonic, address);
     break;
 
   case MODE_ZPG:
-    snprintf(str, len, "%s $%02x", mnemonic, args[0]);
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s %s", mnemonic, address);
     break;
 
   case MODE_ZPX:
-    snprintf(str, len, "%s $%02x,X", mnemonic, args[0]);
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s %s,X", mnemonic, address);
     break;
 
   case MODE_ZPY:
-    snprintf(str, len, "%s $%02x,Y", mnemonic, args[0]);
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s %s,Y", mnemonic, address);
     break;
 
   case MODE_IMP:

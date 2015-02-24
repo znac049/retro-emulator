@@ -24,6 +24,7 @@ void CPU::reset()
 void CPU::step()
 {
   opBeginTime = getNanoTicks();
+
   // Store the address from which the IR was read, for debugging
   state->lastPc = state->pc;
 
@@ -1141,9 +1142,9 @@ int CPU::zpxAddress(int zp)
 /**
  * Given a single byte, compute the offset address.
  */
-int CPU::relAddress(int offset)
+int CPU::relAddress(byte offset)
 {
-  return (state->pc + offset) & 0xffff;
+  return (state->pc + (signed char)offset) & 0xffff;
 }
 
 /**

@@ -82,6 +82,8 @@ void MemoryMap::pokew(int addr, word w)
 void MemoryMap::add(Device *dev, int from, int to)
 {
   Node *ent;
+  Node *prev;
+  Node *node;
 
   if (from > to) {
     throw "start is after end when adding device to memory map";
@@ -93,9 +95,31 @@ void MemoryMap::add(Device *dev, int from, int to)
   ent->endAddress = to;
   ent->device = dev;
 
-  ent->before = ent->after = NULL;
+  ent->next = NULL;
 
-  head = insert(ent, head);
+  if (head == NULL) {
+    head = ent;
+  }
+  else {
+    for (node = head; node != NULL; node = node->next) {
+      if (to < node->startAddress) {
+	if (node == head) {
+	  head = ent;
+	}
+	else {
+	  prev->next = ent;
+	}
+	    
+	ent->next = node;
+
+	return;
+      }
+
+      prev = node;
+    }
+
+    prev->next = ent;
+  }
 }
 
 MemoryMap::Node *MemoryMap::insert(Node *ent, Node *node)
@@ -108,11 +132,12 @@ MemoryMap::Node *MemoryMap::insert(Node *ent, Node *node)
     throw "Overlapping devices when adding device to memory map";
   }
 
-  if (ent->startAddress < node->startAddress) {
-    node->before = insert(ent, node->before);
+  if (ent->startAddress > node->startAddress) {
+    return insert(ent, node->next);
   }
   else {
-    node->after = insert(ent, node->after);
+    ent->next = node;
+    return ent;
   }
 
   return node;
@@ -127,11 +152,10 @@ MemoryMap::Node *MemoryMap::findDevice(int addr)
       return ent;
     }
 
-    if (addr < ent->startAddress) {
-      ent = ent->before;
-    }
-    else {
-      ent = ent->after;
+    ent = ent->next;
+
+    if (ent->startAddress > addr) {
+      return NULL;
     }
   }
 
@@ -148,32 +172,30 @@ void MemoryMap::dump()
 
 void MemoryMap::dumpNode(Node *ent)
 {
-  if (ent->before != NULL) {
-    dumpNode(ent->before);
-  }
+  while (ent != NULL) {
+    printf("%-20s ", ent->device->getName());
 
-  printf("%-20s ", ent->device->getName());
+    if (ent->startAddress == ent->endAddress) {
+      printf("$%04x         ", ent->startAddress);
+    }
+    else {
+      printf("$%04x - $%04x ", ent->startAddress, ent->endAddress);
+    }
 
-  if (ent->startAddress == ent->endAddress) {
-    printf("$%04x         ", ent->startAddress);
-  }
-  else {
-    printf("$%04x - $%04x ", ent->startAddress, ent->endAddress);
-  }
+    printf("(%d bytes)\n", ent->device->getSize());
 
-  printf("(%d bytes)\n", ent->device->getSize());
-
-  if (ent->after != NULL) {
-    dumpNode(ent->after);
+    ent = ent->next;
   }
 }
 
-void MemoryMap::getLabel(char *str, int len, int addr)
+bool MemoryMap::getAddressName(char *str, int len, int addr)
 {
   Node *ent = findDevice(addr);
 
   if (ent != NULL) {
-    ent->device->getLabel(str, len, addr - ent->startAddress);
+    if (!ent->device->getAddressName(str, len, addr - ent->startAddress)) {
+      snprintf(str, len, "$%04x", addr);
+    }
   }
   else {
     snprintf(str, len, "$%04x", addr);

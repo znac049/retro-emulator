@@ -4,34 +4,51 @@
 #include "AtariEm.h"
 #include "MemoryDevice.h"
 #include "Pokey.h"
-#include "ADlxDigitalOutputs.h"
+#include "ADlxOutputs.h"
+#include "ADlxSwitches.h"
+#include "ADlxInputs.h"
+#include "ADlxOptionSwitches.h"
+#include "VectorGenerator.h"
+#include "StartVGDevice.h"
+#include "WatchDog.h"
 #include "CPU.h"
 
 int main(int argc, char *argv[])
 {
+  VectorGenerator dvg;
   MemoryDevice ram(2048, 0);
   MemoryDevice rom(8192, 1);
   MemoryDevice vectorRam(2048, 0);
   MemoryDevice vectorRom(4096, 1);
-  ADlxDigitalOutputs ops;
+  ADlxOptionSwitches optionSwitches;
+  ADlxSwitches switches;
+  ADlxOutputs outputs;
+  ADlxInputs inputs(&dvg);
+  StartVGDevice vgStart(&dvg);
+  WatchDog watchDog;
   Pokey pokey;
 
   MemoryMap mm(0xffff + 1);
   CPU *proc;
 
-  mm.connect(&ops, 0x3c00);
-
-  vectorRom.setName("Vector ROM");
-  mm.connect(&vectorRom, 0x4800);
-
   vectorRam.setName("Vector RAM");
-  mm.connect(&vectorRam, 0x4000);
+  vectorRom.setName("Vector ROM");
+  
+  // Turn on the self test switch
+  inputs.press(7);
 
-  mm.connect(&pokey, 0x2c00);
-
-  mm.connect(&ram, 0);
-  mm.connect(&rom, 0x6000);
-  mm.connect(&rom, 0xe000);
+  mm.connect(&ram,            0);
+  mm.connect(&inputs,         0x2000);
+  mm.connect(&switches,       0x2400);
+  mm.connect(&optionSwitches, 0x2800);
+  mm.connect(&pokey,          0x2c00);
+  mm.connect(&vgStart,        0x3000);
+  mm.connect(&watchDog,       0x3400);
+  mm.connect(&outputs,        0x3c00);
+  mm.connect(&vectorRam,      0x4000);
+  mm.connect(&vectorRom,      0x4800);
+  mm.connect(&rom,            0x6000);
+  mm.connect(&rom,            0xe000);
 
   rom.load("roms/adlx.rom");
 
@@ -45,7 +62,7 @@ int main(int argc, char *argv[])
       mm.poke(i, 0);
     }
 
-    for (int i=0; i<5000; i++) {
+    for (int i=0; i<50000; i++) {
       proc->step();
       proc->summary();
     }

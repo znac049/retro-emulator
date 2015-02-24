@@ -1,18 +1,19 @@
-#ifndef _POKEY_H_
-#define _POKEY_H_
+/*
+ * Atari Watchdog device.
+ */
+
+#ifndef _WATCHDOG_H_
+#define _WATCHDOG_H_
 
 #include "Device.h"
 
-#define POKEY_SIZE 16
-
-class Pokey : public Device
+class WatchDog : public Device
 {
  private:
-  static const char *portNames[];
 
  public:
-  Pokey();
-  ~Pokey();
+  WatchDog();
+  ~WatchDog();
 
   byte peek(int addr);
   void poke(int addr, byte b);
