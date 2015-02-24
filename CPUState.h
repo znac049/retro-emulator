@@ -64,6 +64,7 @@ class CPUState {
   ~CPUState();
 
   void reset();
+  int load(int addr);
 
   byte getStatusFlag();
   void getStatusFlagAsString(char *str, int len);

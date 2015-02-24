@@ -14,6 +14,7 @@ class Console
  private:
   WINDOW *hexWin;
   WINDOW *statusWin;
+  WINDOW *codeWin;
   CPU *proc;
   bool colorScreen;
 
@@ -26,6 +27,7 @@ class Console
 
   void updateHex();
   void updateStatus();
+  void updateCode();
 
   void commandLoop();
 };

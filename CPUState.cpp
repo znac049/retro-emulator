@@ -22,8 +22,6 @@ void CPUState::reset()
   sp = 0xff;
 
   pc = memory->peekw(RST_VECTOR_L);
-  printf("PC after reset vector = $%04x\n", pc);
-
   ir = memory->peek(pc);
 
   lastPc = 0;
@@ -43,6 +41,25 @@ void CPUState::reset()
 
   stepCounter = 0L;
   running = false;
+}
+
+int CPUState::load(int addr)
+{
+  lastPc = pc;
+  pc = addr;
+
+  ir = memory->peek(pc);
+  pc++;
+
+  opTrap = false;
+
+  instSize = Instructions::size(ir);
+  for (int i = 0; i < instSize-1; i++) {
+    args[i] = memory->peek(pc);
+    pc++;
+  }
+
+  return instSize;
 }
 
 byte CPUState::getStatusFlag()

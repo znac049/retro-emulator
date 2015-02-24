@@ -34,6 +34,8 @@ void Console::initScreen() {
   statusWin = newwin(12, 21, 0, 62);
   box(statusWin, 0, 0);
 
+  codeWin = newwin(12, 61, 13, 62);
+
   updateScreen();
 }
 
@@ -41,11 +43,13 @@ void Console::updateScreen()
 {
   updateStatus();
   updateHex();
+  updateCode();
 
   refresh();
 
   wrefresh(hexWin);
   wrefresh(statusWin);
+  wrefresh(codeWin);
 }
 
 void Console::updateHex()
@@ -54,7 +58,7 @@ void Console::updateHex()
   int y = 1;
   MemoryMap *mem = proc->getMemory();
 
-  mvwprintw(hexWin, 0, 2, "%s", "Memory");
+  mvwaddstr(hexWin, 0, 2, "Memory");
 
   for (int i=0; i<nBytes; i++) {
     if ((i % 16) == 0) {
@@ -77,7 +81,7 @@ void Console::updateStatus()
     attron(COLOR_PAIR(1));
   }
 
-  mvwprintw(statusWin, 0, 2, "%s", "CPU Registers");
+  mvwaddstr(statusWin, 0, 2, "CPU Registers");
 
   if (colorScreen) {
     attroff(COLOR_PAIR(1));
@@ -90,6 +94,44 @@ void Console::updateStatus()
   mvwprintw(statusWin, 6, 2, "Flags: %s",   flags);
   mvwprintw(statusWin, 8, 5,    "PC: %04X", state->pc);
   mvwprintw(statusWin, 9, 5,    "IR: %02X", state->ir);
+}
+
+void Console::updateCode()
+{
+  CPUState *state = proc->getState();
+  MemoryMap *mem = proc->getMemory();
+  CPUState cs(mem);
+
+  int maxX, maxY;
+  int pc = state->pc;
+  int size;
+
+  char code[256];
+
+  wclear(codeWin);
+  box(codeWin, 0, 0);
+
+  getmaxyx(codeWin, maxY, maxX);
+
+  mvwaddstr(codeWin, 0, 2, "Code");
+
+  for (int y = 1; y < maxY-1; y++) {
+    size = cs.load(pc);
+    mvwprintw(codeWin, y, 3, "$%04X: ", pc);
+
+    for (int i = 0; i < size; i++) {
+      wprintw(codeWin, "%02X ", mem->peek(pc+i));
+    }
+
+    for (int i = size; i < 3; i++) {
+      waddstr(codeWin, "   ");
+    }
+
+    cs.disassembleOp(code, sizeof(code));
+    wprintw(codeWin, "  %s", code);
+
+    pc += size;
+  }
 }
 
 void Console::commandLoop()

@@ -13,7 +13,7 @@ MemoryDevice::MemoryDevice(int size_in_bytes, short int ro) :
   bytes = (byte *) malloc(ram_size);
 
   for (int i = 0; i < ram_size; i++) {
-    bytes[i] = 0;
+    bytes[i] = 0x5a;
   }
 
   if (read_only) {

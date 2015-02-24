@@ -30,8 +30,6 @@ byte MemoryMap::peek(int addr)
 
   if (ent != NULL) {
     b = ent->device->peek(addr - ent->startAddress);
-
-    //printf("Rd $%04x (%s) = $%02x\n", addr, ent->device->getName(), b);
   }
 
   return b;
@@ -43,8 +41,6 @@ void MemoryMap::poke(int addr, byte b)
 
   if (ent != NULL) {
     ent->device->poke(addr - ent->startAddress, b);
-
-    //printf("Wr $%04x (%s) = $%02x\n", addr, ent->device->getName(), b);
   }
 }
 
@@ -58,8 +54,6 @@ word MemoryMap::peekw(int addr)
 
     w = ent->device->peek(ad+1)<<8;
     w |= ent->device->peek(ad);
-
-    printf("Rdw $%04x (%s) = $%04x\n", addr, ent->device->getName(), w);
   }
 
   return w;
@@ -74,8 +68,6 @@ void MemoryMap::pokew(int addr, word w)
 
     ent->device->poke(ad,   w & 0xff);
     ent->device->poke(ad+1, (w>>8) & 0xff);
-
-    //printf("Wr $%04x (%s) = $%04x\n", addr, ent->device->getName(), w);
   }
 }
 
