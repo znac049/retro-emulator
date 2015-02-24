@@ -18,6 +18,8 @@ class Console
   CPU *proc;
   bool colorScreen;
 
+  void setTitle(WINDOW *w, const char *str);
+
  public:
   Console(CPU *proc);
   ~Console();

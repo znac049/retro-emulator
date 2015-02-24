@@ -7,8 +7,6 @@ Console::Console(CPU *cpu)
 {
   proc = cpu;
 
-  //colorScreen = has_colors();
-  colorScreen = false;
   initScreen();
 }
 
@@ -19,22 +17,20 @@ Console::~Console()
 
 void Console::initScreen() {
   initscr();
-  raw();
-  keypad(stdscr, true);
-  noecho();
+  colorScreen = has_colors();
 
   if (colorScreen) {
     start_color();
     init_pair(1, COLOR_RED, COLOR_BLACK);
   }
 
-  hexWin = newwin(34, 60, 0, 0);
-  box(hexWin, 0, 0);
+  raw();
+  keypad(stdscr, true);
+  noecho();
 
-  statusWin = newwin(12, 21, 0, 62);
-  box(statusWin, 0, 0);
-
-  codeWin = newwin(12, 61, 13, 62);
+  hexWin =    newwin(34, 60, 0,  0);
+  statusWin = newwin(12, 21, 0,  62);
+  codeWin =   newwin(12, 61, 13, 62);
 
   updateScreen();
 }
@@ -58,7 +54,7 @@ void Console::updateHex()
   int y = 1;
   MemoryMap *mem = proc->getMemory();
 
-  mvwaddstr(hexWin, 0, 2, "Memory");
+  setTitle(hexWin, "Memory");
 
   for (int i=0; i<nBytes; i++) {
     if ((i % 16) == 0) {
@@ -77,15 +73,7 @@ void Console::updateStatus()
 
   state->getStatusFlagAsString(flags, sizeof(flags));
 
-  if (colorScreen) {
-    attron(COLOR_PAIR(1));
-  }
-
-  mvwaddstr(statusWin, 0, 2, "CPU Registers");
-
-  if (colorScreen) {
-    attroff(COLOR_PAIR(1));
-  }
+  setTitle(statusWin, "CPU Registers");
 
   mvwprintw(statusWin, 2, 6,     "A: %02X", state->a);
   mvwprintw(statusWin, 3, 6,     "X: %02X", state->x);
@@ -109,7 +97,7 @@ void Console::updateCode()
   char code[256];
 
   wclear(codeWin);
-  box(codeWin, 0, 0);
+  setTitle(codeWin, "Code");
 
   getmaxyx(codeWin, maxY, maxX);
 
@@ -153,5 +141,26 @@ void Console::commandLoop()
     updateScreen();
 
     ch = getch();
+  }
+}
+
+void Console::setTitle(WINDOW *w, const char *str)
+{
+  box(w, 0, 0);
+
+  if (colorScreen) {
+    attron(COLOR_PAIR(1));
+  }
+
+  mvwaddstr(w, 0, 2, str);
+  if (colorScreen) {
+    waddstr(w, " c");
+  }
+  else {
+    waddstr(w, " m");
+  }
+
+  if (colorScreen) {
+    attroff(COLOR_PAIR(1));
   }
 }

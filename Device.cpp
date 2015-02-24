@@ -59,10 +59,10 @@ int Device::load(const char *loc)
   int size = getSize();
   int addr = 0;
 
-  printf("Device::load('%s')\n", loc);
+  //printf("Device::load('%s')\n", loc);
 
   if (fd) {
-    printf("Reading up to %d bytes from '%s'...\n", size, loc);
+    //printf("Reading up to %d bytes from '%s'...\n", size, loc);
 
     while ((addr < size) && (!feof(fd))) {
       int b = fgetc(fd);
@@ -73,7 +73,7 @@ int Device::load(const char *loc)
       }
     }
 
-    printf("...read %d bytes.\n", addr);
+    //printf("...read %d bytes.\n", addr);
 
     fclose(fd);
   }
