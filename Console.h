@@ -8,13 +8,14 @@
 #include <ncurses.h>
 
 #include "CPU.h"
+#include "CodeWindow.h"
 
 class Console
 {
  private:
   WINDOW *hexWin;
   WINDOW *statusWin;
-  WINDOW *codeWin;
+  CodeWindow *codeWin;
   CPU *proc;
   bool colorScreen;
 

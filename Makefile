@@ -3,7 +3,8 @@ SRCS=AtariEm.cpp MemoryDevice.cpp CPU.cpp CPUState.cpp \
 	ADlxOutputs.cpp WatchDog.cpp \
 	ADlxSwitches.cpp ADlxInputs.cpp ADlxOptionSwitches.cpp \
 	VectorGenerator.cpp StartVGDevice.cpp \
-	Console.cpp
+	Console.cpp \
+	Window.cpp CodeWindow.cpp
 
 OBJS=$(subst .cpp,.o,$(SRCS))
 

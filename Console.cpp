@@ -21,7 +21,8 @@ void Console::initScreen() {
 
   if (colorScreen) {
     start_color();
-    init_pair(1, COLOR_RED, COLOR_BLACK);
+    init_pair(1, COLOR_RED,   COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
   }
 
   raw();
@@ -30,7 +31,7 @@ void Console::initScreen() {
 
   hexWin =    newwin(34, 60, 0,  0);
   statusWin = newwin(12, 21, 0,  62);
-  codeWin =   newwin(12, 61, 13, 62);
+  codeWin =   new CodeWindow(12, 61, 13, 62, proc);
 
   updateScreen();
 }
@@ -45,7 +46,7 @@ void Console::updateScreen()
 
   wrefresh(hexWin);
   wrefresh(statusWin);
-  wrefresh(codeWin);
+  //wrefresh(codeWin);
 }
 
 void Console::updateHex()
@@ -86,40 +87,9 @@ void Console::updateStatus()
 
 void Console::updateCode()
 {
-  CPUState *state = proc->getState();
-  MemoryMap *mem = proc->getMemory();
-  CPUState cs(mem);
+  int pc = proc->getState()->pc;
 
-  int maxX, maxY;
-  int pc = state->pc;
-  int size;
-
-  char code[256];
-
-  wclear(codeWin);
-  setTitle(codeWin, "Code");
-
-  getmaxyx(codeWin, maxY, maxX);
-
-  mvwaddstr(codeWin, 0, 2, "Code");
-
-  for (int y = 1; y < maxY-1; y++) {
-    size = cs.load(pc);
-    mvwprintw(codeWin, y, 3, "$%04X: ", pc);
-
-    for (int i = 0; i < size; i++) {
-      wprintw(codeWin, "%02X ", mem->peek(pc+i));
-    }
-
-    for (int i = size; i < 3; i++) {
-      waddstr(codeWin, "   ");
-    }
-
-    cs.disassembleOp(code, sizeof(code));
-    wprintw(codeWin, "  %s", code);
-
-    pc += size;
-  }
+  codeWin->display(pc);
 }
 
 void Console::commandLoop()

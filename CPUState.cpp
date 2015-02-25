@@ -153,7 +153,7 @@ void CPUState::disassembleOp(char *str, int len)
 
   case MODE_INY:
     memory->getAddressName(address, sizeof(address), args[0]);
-    snprintf(str, len, "%s ($%02x),Y", mnemonic, address);
+    snprintf(str, len, "%s (%s),Y", mnemonic, address);
     break;
 
   case MODE_REL:
