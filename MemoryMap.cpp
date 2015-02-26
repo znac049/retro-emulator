@@ -182,14 +182,22 @@ void MemoryMap::dumpNode(Node *ent)
 
 bool MemoryMap::getAddressName(char *str, int len, int addr)
 {
+  const char *fmt;
   Node *ent = findDevice(addr);
+
+  if (addr <= 0xff) {
+    fmt = "$%02X";
+  }
+  else {
+    fmt = "$%04X";
+  }
 
   if (ent != NULL) {
     if (!ent->device->getAddressName(str, len, addr - ent->startAddress)) {
-      snprintf(str, len, "$%04x", addr);
+      snprintf(str, len, fmt, addr);
     }
   }
   else {
-    snprintf(str, len, "$%04x", addr);
+    snprintf(str, len, fmt, addr);
   }
 }

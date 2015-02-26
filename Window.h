@@ -20,6 +20,9 @@ class Window {
 
   void refresh();
   void setTitle(const char *title);
+
+  void printf(const char *fmt, ...);
+  void mvprintf(int row, int col, const char *fmt, ...);
 };
 
 #endif

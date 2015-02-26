@@ -22,6 +22,7 @@ class ADlxInputs : public Device {
   void poke(int addr, byte b);
   int getSize();
 
+  static void flip(int addr);
   static void press(int addr);
   static void release(int addr);
 

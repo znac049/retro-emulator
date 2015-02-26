@@ -60,6 +60,15 @@ int ADlxInputs::getSize()
   return ADLX_INPUTS_SIZE;
 }
 
+void ADlxInputs::flip(int addr)
+{
+  if ((addr < 0) || (addr >= ADLX_INPUTS_SIZE)) {
+    throw "Address out of range in ADlxInputs::press";
+  }
+
+  liveReadState[addr] = !liveReadState[addr];
+}
+
 void ADlxInputs::press(int addr)
 {
   if ((addr < 0) || (addr >= ADLX_INPUTS_SIZE)) {

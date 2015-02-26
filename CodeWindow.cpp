@@ -70,10 +70,15 @@ void CodeWindow::display(int addr)
 void CodeWindow::highlightAddress(int addr)
 {
   for (int y=0; y<height-2; y++) {
-    mvwaddstr(win, y+1, 2, " ");
+    wmove(win,  y+1, 2);
 
     if (addresses[y] == addr) {
-      mvwaddstr(win, y+1, 2, ">");
+      waddstr(win, ">");
+      wchgat(win, width-4, A_NORMAL, 1, NULL);
+    }
+    else {
+      wchgat(win, width-4, A_BOLD, 1, NULL);
+      waddstr(win, " ");
     }
   }
 
