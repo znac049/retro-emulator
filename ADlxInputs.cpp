@@ -7,23 +7,23 @@ const char *ADlxInputs::portNames[] = {
   "Not_Used0",
   "3KHz",
   "VGHalted",
-  "ShieldSwitch",
-  "FireSwitch",
-  "NotUsed5",
-  "SlamSwitch",
-  "SelfTestSwitch"
+  "ShieldSw",
+  "FireSw",
+  "DiagStep",
+  "SlamSw",
+  "SelfTestSw"
 };
 
-bool ADlxInputs::lastReadState[] = {false, false, false, false, false, false, false, false};
-bool ADlxInputs::liveReadState[] = {false, false, false, false, false, false, false, false};
+bool ADlxInputs::lastReadState[] = {true, true, true, true, true, true, true, true};
+bool ADlxInputs::liveReadState[] = {true, true, true, true, true, true, true, true};
 
 ADlxInputs::ADlxInputs(VectorGenerator *vGen) :
-  Device("DLX Inputs")
+  Device("Switches (SINP0)")
 {
   vecGen = vGen;
 
   for (int i=0; i<ADLX_INPUTS_SIZE; i++) {
-    lastReadState[i] = liveReadState[i] = false;
+    lastReadState[i] = liveReadState[i] = true;
   }
 }
 
@@ -75,7 +75,7 @@ void ADlxInputs::press(int addr)
     throw "Address out of range in ADlxInputs::press";
   }
 
-  liveReadState[addr] = true;
+  liveReadState[addr] = false;
 }
 
 void ADlxInputs::release(int addr)

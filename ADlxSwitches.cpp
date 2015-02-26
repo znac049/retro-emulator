@@ -4,20 +4,20 @@
 #include "ADlxSwitches.h"
 
 const char *ADlxSwitches::portNames[] = {
-  "LeftCoinSwitch",
-  "CentreCoinSwitch",
-  "RightCoinSwitch",
-  "Player1StartSwitch",
-  "Player2StartSwitch",
-  "ThrustSwitch",
-  "RotateRightSwitch",
-  "RotateLeftSwitch"
+  "LeftCoinSw",
+  "CentreCoinSw",
+  "RightCoinSw",
+  "Player1StartSw",
+  "Player2StartSw",
+  "ThrustSw",
+  "RotateRightSw",
+  "RotateLeftSw"
 };
 
-bool ADlxSwitches::lastReadState[] = {false, false, false, false, false, false, false, false};
-bool ADlxSwitches::liveReadState[] = {false, false, false, false, false, false, false, false};
+bool ADlxSwitches::lastReadState[] = {true, true, true, true, true, true, true, true};
+bool ADlxSwitches::liveReadState[] = {true, true, true, true, true, true, true, true};
 
-ADlxSwitches::ADlxSwitches() : Device("Switches")
+ADlxSwitches::ADlxSwitches() : Device("Switches (SINP1)")
 {
 }
 
