@@ -1,0 +1,169 @@
+/*
+ * Instructions.cpp
+ *
+ *  Created on: 19 Feb 2015
+ *      Author: bob
+ */
+
+#include "R6502Instructions.h"
+
+const char *Instructions::instructionNames[] = {
+  "BRK", "ORA",  NULL,  NULL,  NULL, "ORA", "ASL",  NULL,
+  "PHP", "ORA", "ASL",  NULL,  NULL, "ORA", "ASL",  NULL,
+  "BPL", "ORA",  NULL,  NULL,  NULL, "ORA", "ASL",  NULL,
+  "CLC", "ORA",  NULL,  NULL,  NULL, "ORA", "ASL",  NULL,
+  "JSR", "AND",  NULL,  NULL, "BIT", "AND", "ROL",  NULL,
+  "PLP", "AND", "ROL",  NULL, "BIT", "AND", "ROL",  NULL,
+  "BMI", "AND",  NULL,  NULL,  NULL, "AND", "ROL",  NULL,
+  "SEC", "AND",  NULL,  NULL,  NULL, "AND", "ROL",  NULL,
+  "RTI", "EOR",  NULL,  NULL,  NULL, "EOR", "LSR",  NULL,
+  "PHA", "EOR", "LSR",  NULL, "JMP", "EOR", "LSR",  NULL,
+  "BVC", "EOR",  NULL,  NULL,  NULL, "EOR", "LSR",  NULL,
+  "CLI", "EOR",  NULL,  NULL,  NULL, "EOR", "LSR",  NULL,
+  "RTS", "ADC",  NULL,  NULL,  NULL, "ADC", "ROR",  NULL,
+  "PLA", "ADC", "ROR",  NULL, "JMP", "ADC", "ROR",  NULL,
+  "BVS", "ADC",  NULL,  NULL,  NULL, "ADC", "ROR",  NULL,
+  "SEI", "ADC",  NULL,  NULL,  NULL, "ADC", "ROR",  NULL,
+  "BCS", "STA",  NULL,  NULL, "STY", "STA", "STX",  NULL,
+  "DEY",  NULL, "TXA",  NULL, "STY", "STA", "STX",  NULL,
+  "BCC", "STA",  NULL,  NULL, "STY", "STA", "STX",  NULL,
+  "TYA", "STA", "TXS",  NULL,  NULL, "STA",  NULL,  NULL,
+  "LDY", "LDA", "LDX",  NULL, "LDY", "LDA", "LDX",  NULL,
+  "TAY", "LDA", "TAX",  NULL, "LDY", "LDA", "LDX",  NULL,
+  "BCS", "LDA",  NULL,  NULL, "LDY", "LDA", "LDX",  NULL,
+  "CLV", "LDA", "TSX",  NULL, "LDY", "LDA", "LDX",  NULL,
+  "CPY", "CMP",  NULL,  NULL, "CPY", "CMP", "DEC",  NULL,
+  "INY", "CMP", "DEX",  NULL, "CPY", "CMP", "DEC",  NULL,
+  "BNE", "CMP",  NULL,  NULL,  NULL, "CMP", "DEC",  NULL,
+  "CLD", "CMP",  NULL,  NULL,  NULL, "CMP", "DEC",  NULL,
+  "CPX", "SBC",  NULL,  NULL, "CPX", "SBC", "INC",  NULL,
+  "INX", "SBC", "NOP",  NULL, "CPX", "SBC", "INC",  NULL,
+  "BEQ", "SBC",  NULL,  NULL,  NULL, "SBC", "INC",  NULL,
+  "SED", "SBC",  NULL,  NULL,  NULL, "SBC", "INC",  NULL
+};
+
+const int Instructions::instructionSizes[] = {
+  1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 0, 3, 3, 0,
+  2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0,
+  3, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0,
+  1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0,
+  1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0,
+  2, 2, 0, 0, 2, 2, 2, 0, 1, 0, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 0, 3, 0, 0,
+  2, 2, 2, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 2, 2, 2, 0, 1, 3, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0,
+  2, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
+  2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0
+};
+
+const int Instructions::instructionCycles[] = {
+  7, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 0, 4, 6, 0,
+  2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+  6, 6, 0, 0, 3, 3, 5, 0, 4, 2, 2, 0, 4, 4, 6, 0,
+  2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+  6, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 3, 4, 6, 0,
+  2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+  6, 6, 0, 0, 0, 3, 5, 0, 4, 2, 2, 0, 5, 4, 6, 0,
+  2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+  2, 6, 0, 0, 3, 3, 3, 0, 2, 0, 2, 0, 4, 4, 4, 0,
+  2, 6, 0, 0, 4, 4, 4, 0, 2, 5, 2, 0, 0, 5, 0, 0,
+  2, 6, 2, 0, 3, 3, 3, 0, 2, 2, 2, 0, 4, 4, 4, 0,
+  2, 5, 0, 0, 4, 4, 4, 0, 2, 4, 2, 0, 4, 4, 4, 0,
+  2, 6, 0, 0, 3, 3, 5, 0, 2, 2, 2, 0, 4, 4, 6, 0,
+  2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
+  2, 6, 0, 0, 3, 3, 5, 0, 2, 2, 2, 0, 4, 4, 6, 0,
+  2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0
+};
+
+const int Instructions::addressingModes[] = {
+  MODE_IMP, MODE_INX, MODE_NUL, MODE_NUL,   // 0x00-0x03
+  MODE_NUL, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0x04-0x07
+  MODE_IMP, MODE_IMM, MODE_ACC, MODE_NUL,   // 0x08-0x0b
+  MODE_NUL, MODE_ABS, MODE_ABS, MODE_NUL,   // 0x0c-0x0f
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0x10-0x13
+  MODE_NUL, MODE_ZPX, MODE_ZPX, MODE_NUL,   // 0x14-0x17
+  MODE_IMP, MODE_ABY, MODE_NUL, MODE_NUL,   // 0x18-0x1b
+  MODE_NUL, MODE_ABX, MODE_ABX, MODE_NUL,   // 0x1c-0x1f
+  MODE_ABS, MODE_INX, MODE_NUL, MODE_NUL,   // 0x20-0x23
+  MODE_ZPG, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0x24-0x27
+  MODE_IMP, MODE_IMM, MODE_ACC, MODE_NUL,   // 0x28-0x2b
+  MODE_ABS, MODE_ABS, MODE_ABS, MODE_NUL,   // 0x2c-0x2f
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0x30-0x33
+  MODE_NUL, MODE_ZPX, MODE_ZPX, MODE_NUL,   // 0x34-0x37
+  MODE_IMP, MODE_ABY, MODE_NUL, MODE_NUL,   // 0x38-0x3b
+  MODE_NUL, MODE_ABX, MODE_ABX, MODE_NUL,   // 0x3c-0x3f
+  MODE_IMP, MODE_INX, MODE_NUL, MODE_NUL,   // 0x40-0x43
+  MODE_NUL, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0x44-0x47
+  MODE_IMP, MODE_IMM, MODE_ACC, MODE_NUL,   // 0x48-0x4b
+  MODE_ABS, MODE_ABS, MODE_ABS, MODE_NUL,   // 0x4c-0x4f
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0x50-0x53
+  MODE_NUL, MODE_ZPX, MODE_ZPX, MODE_NUL,   // 0x54-0x57
+  MODE_IMP, MODE_ABY, MODE_NUL, MODE_NUL,   // 0x58-0x5b
+  MODE_NUL, MODE_ABX, MODE_ABX, MODE_NUL,   // 0x5c-0x5f
+  MODE_IMP, MODE_INX, MODE_NUL, MODE_NUL,   // 0x60-0x63
+  MODE_NUL, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0x64-0x67
+  MODE_IMP, MODE_IMM, MODE_ACC, MODE_NUL,   // 0x68-0x6b
+  MODE_IND, MODE_ABS, MODE_ABS, MODE_NUL,   // 0x6c-0x6f
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0x70-0x73
+  MODE_NUL, MODE_ZPX, MODE_ZPX, MODE_NUL,   // 0x74-0x77
+  MODE_IMP, MODE_ABY, MODE_NUL, MODE_NUL,   // 0x78-0x7b
+  MODE_NUL, MODE_ABX, MODE_ABX, MODE_NUL,   // 0x7c-0x7f
+  MODE_REL, MODE_INX, MODE_NUL, MODE_NUL,   // 0x80-0x83
+  MODE_ZPG, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0x84-0x87
+  MODE_IMP, MODE_NUL, MODE_IMP, MODE_NUL,   // 0x88-0x8b
+  MODE_ABS, MODE_ABS, MODE_ABS, MODE_NUL,   // 0x8c-0x8f
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0x90-0x93
+  MODE_ZPX, MODE_ZPX, MODE_ZPY, MODE_NUL,   // 0x94-0x97
+  MODE_IMP, MODE_ABY, MODE_IMP, MODE_NUL,   // 0x98-0x9b
+  MODE_NUL, MODE_ABX, MODE_NUL, MODE_NUL,   // 0x9c-0x9f
+  MODE_IMM, MODE_INX, MODE_IMM, MODE_NUL,   // 0xa0-0xa3
+  MODE_ZPG, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0xa4-0xa7
+  MODE_IMP, MODE_IMM, MODE_IMP, MODE_NUL,   // 0xa8-0xab
+  MODE_ABS, MODE_ABS, MODE_ABS, MODE_NUL,   // 0xac-0xaf
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0xb0-0xb3
+  MODE_ZPX, MODE_ZPX, MODE_ZPY, MODE_NUL,   // 0xb4-0xb7
+  MODE_IMP, MODE_ABY, MODE_IMP, MODE_NUL,   // 0xb8-0xbb
+  MODE_ABX, MODE_ABX, MODE_ABY, MODE_NUL,   // 0xbc-0xbf
+  MODE_IMM, MODE_INX, MODE_NUL, MODE_NUL,   // 0xc0-0xc3
+  MODE_ZPG, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0xc4-0xc7
+  MODE_IMP, MODE_IMM, MODE_IMP, MODE_NUL,   // 0xc8-0xcb
+  MODE_ABS, MODE_ABS, MODE_ABS, MODE_NUL,   // 0xcc-0xcf
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0xd0-0xd3
+  MODE_NUL, MODE_ZPX, MODE_ZPX, MODE_NUL,   // 0xd4-0xd7
+  MODE_IMP, MODE_ABY, MODE_NUL, MODE_NUL,   // 0xd8-0xdb
+  MODE_NUL, MODE_ABX, MODE_ABX, MODE_NUL,   // 0xdc-0xdf
+  MODE_IMM, MODE_INX, MODE_NUL, MODE_NUL,   // 0xe0-0xe3
+  MODE_ZPG, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0xe4-0xe7
+  MODE_IMP, MODE_IMM, MODE_IMP, MODE_NUL,   // 0xe8-0xeb
+  MODE_ABS, MODE_ABS, MODE_ABS, MODE_NUL,   // 0xec-0xef
+  MODE_REL, MODE_INY, MODE_NUL, MODE_NUL,   // 0xf0-0xf3
+  MODE_NUL, MODE_ZPX, MODE_ZPX, MODE_NUL,   // 0xf4-0xf7
+  MODE_IMP, MODE_ABY, MODE_NUL, MODE_NUL,   // 0xf8-0xfb
+  MODE_NUL, MODE_ABX, MODE_ABX, MODE_NUL    // 0xfc-0xff
+};
+
+
+const char *Instructions::mnemonic(byte b)
+{
+  return instructionNames[b];
+}
+
+const int Instructions::mode(byte b)
+{
+  return addressingModes[b];
+}
+
+const int Instructions::size(byte b)
+{
+  return instructionSizes[b];
+}
+
+const int Instructions::cycles(byte b)
+{
+  return instructionCycles[b];
+}

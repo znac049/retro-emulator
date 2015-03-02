@@ -18,9 +18,10 @@ class Window {
   Window(int rows, int cols, int atRow, int atCol);
   ~Window();
 
-  void refresh();
+  void redraw();
   void setTitle(const char *title);
 
+  void clear();
   void printf(const char *fmt, ...);
   void mvprintf(int row, int col, const char *fmt, ...);
 };

@@ -1,7 +1,6 @@
 #ifndef _MEMORYMAP_H_
 #define _MEMORYMAP_H_
 
-#include "AtariEm.h"
 #include "Device.h"
 
 class MemoryMap

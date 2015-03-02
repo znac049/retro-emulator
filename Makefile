@@ -1,11 +1,21 @@
-SRCS=AtariEm.cpp MemoryDevice.cpp CPU.cpp CPUState.cpp \
-	Instructions.cpp Device.cpp MemoryMap.cpp Pokey.cpp \
-	ADlxOutputs.cpp WatchDog.cpp \
-	ADlxSwitches.cpp ADlxInputs.cpp ADlxOptionSwitches.cpp \
-	VectorGenerator.cpp StartVGDevice.cpp \
-	Console.cpp \
+SRCS=gem.cpp \
+	Device.cpp DeviceListener.cpp RegisterBasedDevice \
+	ADInput.cpp ADInputs.cpp ADSin0.cpp ADSin1.cpp \
+	ADlxOptionSwitches.cpp \
+	ADOutput.cpp ADOutputs.cpp \
+	Pokey.cpp MemoryDevice.cpp \
+	WatchDog.cpp \
+	Processor.cpp \
+	R6502.cpp R6502State.cpp R6502Instructions.cpp \
+	i8080.cpp \
 	Window.cpp CodeWindow.cpp \
+	Console.cpp \
+	MemoryMap.cpp \
+	Timer.cpp TimerListener.cpp \
+	VectorGenerator.cpp \
 	AsteroidsDeluxe.cpp
+
+SRCS=gem.cpp
 
 OBJS=$(subst .cpp,.o,$(SRCS))
 
@@ -13,14 +23,14 @@ CC=gcc
 CXX=g++
 RM=rm -f
 
-CPPFLAGS=-g -pthread
+CPPFLAGS=-g -pthread -Icpus -Idevices -Isystems -Iui
 LDFLAGS=-g 
 LDLIBS=-lrt -lncurses
 
-all: AtariEm
+all: gem
 
-AtariEm: $(OBJS)
-	$(CXX) $(LDFLAGS) -o AtariEm $(OBJS) $(LDLIBS) 
+gem: $(OBJS)
+	$(CXX) $(LDFLAGS) -o gem $(OBJS) $(LDLIBS) 
 
 depend: .depend
 
@@ -29,7 +39,7 @@ depend: .depend
 	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
 
 clean:
-	$(RM) $(OBJS) *~ AtariEm 
+	$(RM) $(OBJS) *~ gem
 
 dist-clean: clean
 	$(RM) *~ .depend

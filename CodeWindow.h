@@ -3,14 +3,14 @@
 
 #include <ncurses.h>
 
-#include "CPU.h"
+#include "R6502.h"
 #include "MemoryMap.h"
 #include "CPUState.h"
 #include "Window.h"
 
 class CodeWindow : public Window {
  private:
-  CPU *proc;
+  R6502 *proc;
   CPUState *state;
   MemoryMap *mem;
 
@@ -21,7 +21,7 @@ class CodeWindow : public Window {
   void highlightAddress(int addr);
 
  public:
-  CodeWindow(int rows, int cols, int atRow, int atCol, CPU *cpu);
+  CodeWindow(int rows, int cols, int atRow, int atCol, R6502 *cpu);
   ~CodeWindow();
 
   void display(int addr);

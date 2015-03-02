@@ -2,19 +2,19 @@
 #include <string.h>
 
 #include "R6502.h"
-#include "CPUState.h"
-#include "Instructions.h"
+#include "R6502State.h"
+#include "R6502Instructions.h"
 
-CPUState::CPUState(MemoryMap *mem) {
+R6502State::R6502State(MemoryMap *mem) {
   memory = mem;
 
   reset();
 }
 
-CPUState::~CPUState() {
+R6502State::~R6502State() {
 }
 
-void CPUState::reset()
+void R6502State::reset()
 {
   a = 0;
   x = y = 0;
@@ -43,7 +43,7 @@ void CPUState::reset()
   running = false;
 }
 
-int CPUState::load(int addr)
+int R6502State::load(int addr)
 {
   lastPc = pc;
   pc = addr;
@@ -62,7 +62,7 @@ int CPUState::load(int addr)
   return instSize;
 }
 
-byte CPUState::getStatusFlag()
+byte R6502State::getStatusFlag()
 {
   byte status = 0x20; /* Bit 5 is always set */
 
@@ -97,7 +97,7 @@ byte CPUState::getStatusFlag()
   return status;
 }
 
-void CPUState::getStatusFlagAsString(char *str, int len)
+void R6502State::getStatusFlagAsString(char *str, int len)
 {
   snprintf(str, len, "[%c%c%c%c%c%c%c%c]",
 	   negativeFlag?'N':'n',
@@ -110,7 +110,7 @@ void CPUState::getStatusFlagAsString(char *str, int len)
 	   carryFlag?'C':'c');
 }
 
-void CPUState::disassembleOp(char *str, int len)
+void R6502State::disassembleOp(char *str, int len)
 {
   const char *mnemonic = Instructions::mnemonic(ir);
   char address[256];

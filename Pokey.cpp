@@ -3,7 +3,7 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "AtariEm.h"
+#include "gem.h"
 #include "Pokey.h"
 
 const char *Pokey::portNames[] = {

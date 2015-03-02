@@ -14,7 +14,7 @@ Window::Window(int nrows, int ncols, int atRow, int atCol)
 Window::~Window() {
 }
 
-void Window::refresh()
+void Window::redraw()
 {
   wrefresh(win);
 }
@@ -53,4 +53,9 @@ void Window::mvprintf(int row, int col, const char *fmt, ...)
   va_end(args);
 
   wrefresh(win);
+}
+
+void Window::clear()
+{
+  wclear(win);
 }

@@ -5,7 +5,7 @@
 
 #include "MemoryMap.h"
 
-class CPUState {
+class R6502State {
  private:
   MemoryMap *memory;
 
@@ -46,8 +46,8 @@ class CPUState {
   word argsw() { return (((word)args[1])<<8) | args[0]; }
 
  public:
-  CPUState(MemoryMap *mem);
-  ~CPUState();
+  R6502State(MemoryMap *mem);
+  ~R6502State();
 
   void reset();
   int load(int addr);

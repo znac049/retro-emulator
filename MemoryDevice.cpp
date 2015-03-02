@@ -2,7 +2,7 @@
 
 #include <malloc.h>
 
-#include "AtariEm.h"
+#include "gem.h"
 #include "MemoryDevice.h"
 
 MemoryDevice::MemoryDevice(int size_in_bytes, short int ro) :

@@ -1,34 +1,23 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "Instructions.h"
-#include "CPU.h"
+#include "R6502.h"
 
-CPU::CPU(MemoryMap *mem) {
+R6502::R6502(MemoryMap *mem) : Processor(mem) {
   behaviour = NMOS_WITH_INDIRECT_JMP_BUG;
 
-  memory = mem;
-  state = new CPUState(memory);
-
-  memory->dump();
+  state = new R6502State(memory);
 }
 
-CPU::~CPU() {
+R6502::~R6502() {
 }
 
-void CPU::reset()
+void R6502::reset()
 {
   state->reset();
 }
 
-void CPU::run()
-{
-  while (state->running) {
-    step();
-  }
-}
-
-void CPU::step()
+void R6502::step()
 {
   opBeginTime = getNanoTicks();
 
@@ -611,13 +600,13 @@ void CPU::step()
   delayLoop(state->ir);
 }
 
-void CPU::handleIrq(word returnPc)
+void R6502::handleIrq(word returnPc)
 {
   handleInterrupt(returnPc, IRQ_VECTOR_L, IRQ_VECTOR_H);
   clearIrq();
 }
 
-void CPU::handleNmi()
+void R6502::handleNmi()
 {
   handleInterrupt(state->pc, NMI_VECTOR_L, NMI_VECTOR_H);
   clearNmi();
@@ -628,7 +617,7 @@ void CPU::handleNmi()
  *
  * @throws MemoryAccessException
  */
-void CPU::handleInterrupt(int returnPc, int vectorLow, int vectorHigh)
+void R6502::handleInterrupt(int returnPc, int vectorLow, int vectorHigh)
 {
   // Set the break flag before pushing.
   setBreakFlag();
@@ -654,7 +643,7 @@ void CPU::handleInterrupt(int returnPc, int vectorLow, int vectorHigh)
  * @param operand The operand
  * @return
  */
-int CPU::adc(int acc, int operand)
+int R6502::adc(int acc, int operand)
 {
   int result = (operand & 0xff) + (acc & 0xff) + getCarryBit();
   int carry6 = (operand & 0x7f) + (acc & 0x7f) + getCarryBit();
@@ -672,7 +661,7 @@ int CPU::adc(int acc, int operand)
  * Add with Carry (BCD).
  */
 
-int CPU::adcDecimal(int acc, int operand) {
+int R6502::adcDecimal(int acc, int operand) {
   int l, h, result;
 
   l = (acc & 0x0f) + (operand & 0x0f) + getCarryBit();
@@ -701,7 +690,7 @@ int CPU::adcDecimal(int acc, int operand) {
  * one's complement of the operand.  This lets the N, V, C, and Z
  * flags work out nicely without any additional logic.
  */
-int CPU::sbc(int acc, int operand) {
+int R6502::sbc(int acc, int operand) {
   int result = adc(acc, ~operand);
   setArithmeticFlags(result);
 
@@ -711,7 +700,7 @@ int CPU::sbc(int acc, int operand) {
 /**
  * Subtract with Carry, BCD mode.
  */
-int CPU::sbcDecimal(int acc, int operand) {
+int R6502::sbcDecimal(int acc, int operand) {
   int l, h, result;
 
   l = (acc & 0x0f) - (operand & 0x0f) - (state->carryFlag ? 0 : 1);
@@ -737,7 +726,7 @@ int CPU::sbcDecimal(int acc, int operand) {
  * Compare two values, and set carry, zero, and negative flags
  * appropriately.
  */
-void CPU::cmp(int reg, int operand) {
+void R6502::cmp(int reg, int operand) {
   int tmp = (reg - operand) & 0xff;
 
   setCarryFlag(reg >= operand);
@@ -749,7 +738,7 @@ void CPU::cmp(int reg, int operand) {
  * Set the Negative and Zero flags based on the current value of the
  * register operand.
  */
-void CPU::setArithmeticFlags(int reg) {
+void R6502::setArithmeticFlags(int reg) {
   state->zeroFlag = (reg == 0);
   state->negativeFlag = (reg & 0x80) != 0;
 }
@@ -761,7 +750,7 @@ void CPU::setArithmeticFlags(int reg) {
  * @param m The value to shift left.
  * @return the left shifted value (m * 2).
  */
-int CPU::asl(int m) {
+int R6502::asl(int m) {
   setCarryFlag((m & 0x80) != 0);
 
   return (m << 1) & 0xff;
@@ -771,7 +760,7 @@ int CPU::asl(int m) {
  * Shifts the given value right by one bit, filling with zeros,
  * and sets the carry flag to the low bit of the initial value.
  */
-int CPU::lsr(int m) {
+int R6502::lsr(int m) {
   setCarryFlag((m & 0x01) != 0);
 
   return (m & 0xff) >> 1;
@@ -782,7 +771,7 @@ int CPU::lsr(int m) {
  * of the carry flag, and setting the carry flag to the original value
  * of bit 7.
  */
-int CPU::rol(int m) {
+int R6502::rol(int m) {
   int result = ((m << 1) | getCarryBit()) & 0xff;
   setCarryFlag((m & 0x80) != 0);
 
@@ -794,165 +783,165 @@ int CPU::rol(int m) {
  * of the carry flag, and setting the carry flag to the original value
  * of bit 1.
  */
-int CPU::ror(int m) {
+int R6502::ror(int m) {
   int result = ((m >> 1) | (getCarryBit() << 7)) & 0xff;
   setCarryFlag((m & 0x01) != 0);
 
   return result;
 }
 
-bool CPU::getBreakFlag()
+bool R6502::getBreakFlag()
 {
   return state->breakFlag;
 }
 
-void CPU::setBreakFlag()
+void R6502::setBreakFlag()
 {
   state->breakFlag = true;
 }
 
-void CPU::setBreakFlag(bool b)
+void R6502::setBreakFlag(bool b)
 {
   state->breakFlag = b;
 }
 
-void CPU::clearBreakFlag()
+void R6502::clearBreakFlag()
 {
   state->breakFlag = false;
 }
 
-bool CPU::getOverflowFlag()
+bool R6502::getOverflowFlag()
 {
   return state->overflowFlag;
 }
 
-void CPU::setOverflowFlag()
+void R6502::setOverflowFlag()
 {
   state->overflowFlag = true;
 }
 
-void CPU::setOverflowFlag(bool b)
+void R6502::setOverflowFlag(bool b)
 {
   state->overflowFlag = b;
 }
 
-void CPU::clearOverflowFlag()
+void R6502::clearOverflowFlag()
 {
   state->overflowFlag = false;
 }
 
-bool CPU::getNegativeFlag()
+bool R6502::getNegativeFlag()
 {
   return state->negativeFlag;
 }
 
-void CPU::setNegativeFlag()
+void R6502::setNegativeFlag()
 {
   state->negativeFlag = true;
 }
 
-void CPU::setNegativeFlag(bool b)
+void R6502::setNegativeFlag(bool b)
 {
   state->negativeFlag = b;
 }
 
-void CPU::clearNegativeFlag()
+void R6502::clearNegativeFlag()
 {
   state->negativeFlag = false;
 }
 
-bool CPU::getCarryFlag()
+bool R6502::getCarryFlag()
 {
   return state->carryFlag;
 }
 
-bool CPU::getCarryBit()
+bool R6502::getCarryBit()
 {
   return state->carryFlag ? 1 : 0;
 }
 
-void CPU::setCarryFlag()
+void R6502::setCarryFlag()
 {
   state->carryFlag = true;
 }
 
-void CPU::setCarryFlag(bool b)
+void R6502::setCarryFlag(bool b)
 {
   state->carryFlag = b;
 }
 
-void CPU::clearCarryFlag()
+void R6502::clearCarryFlag()
 {
   state->carryFlag = false;
 }
 
-bool CPU::getZeroFlag()
+bool R6502::getZeroFlag()
 {
   return state->zeroFlag;
 }
 
-void CPU::setZeroFlag()
+void R6502::setZeroFlag()
 {
   state->zeroFlag = true;
 }
 
-void CPU::setZeroFlag(bool b)
+void R6502::setZeroFlag(bool b)
 {
   state->zeroFlag = b;
 }
 
-void CPU::clearZeroFlag()
+void R6502::clearZeroFlag()
 {
   state->zeroFlag = false;
 }
 
-bool CPU::getIrqDisableFlag()
+bool R6502::getIrqDisableFlag()
 {
   return state->irqDisableFlag;
 }
 
-void CPU::setIrqDisableFlag()
+void R6502::setIrqDisableFlag()
 {
   state->irqDisableFlag = true;
 }
 
-void CPU::setIrqDisableFlag(bool b)
+void R6502::setIrqDisableFlag(bool b)
 {
   state->irqDisableFlag = b;
 }
 
-void CPU::clearIrqDisableFlag()
+void R6502::clearIrqDisableFlag()
 {
   state->irqDisableFlag = false;
 }
 
 
-bool CPU::getDecimalModeFlag()
+bool R6502::getDecimalModeFlag()
 {
   return state->decimalModeFlag;
 }
 
-void CPU::setDecimalModeFlag()
+void R6502::setDecimalModeFlag()
 {
   state->decimalModeFlag = true;
 }
 
-void CPU::setDecimalModeFlag(bool b)
+void R6502::setDecimalModeFlag(bool b)
 {
   state->decimalModeFlag = b;
 }
 
-void CPU::clearDecimalModeFlag()
+void R6502::clearDecimalModeFlag()
 {
   state->decimalModeFlag = false;
 }
 
-int CPU::getProcessorStatus()
+int R6502::getProcessorStatus()
 {
   return state->getStatusFlag();
 }
 
-void CPU::setProcessorStatus(int value) {
+void R6502::setProcessorStatus(int value) {
   if ((value & P_CARRY) != 0)
     setCarryFlag();
   else
@@ -989,22 +978,22 @@ void CPU::setProcessorStatus(int value) {
     clearNegativeFlag();
 }
 
-int CPU::getProgramCounter()
+int R6502::getProgramCounter()
 {
   return state->pc;
 }
 
-void CPU::setProgramCounter(int addr)
+void R6502::setProgramCounter(int addr)
 {
   state->pc = addr;
 }
 
-int CPU::getStackPointer()
+int R6502::getStackPointer()
 {
   return state->sp;
 }
 
-void CPU::setStackPointer(int offset)
+void R6502::setStackPointer(int offset)
 {
   state->sp = offset;
 }
@@ -1012,14 +1001,14 @@ void CPU::setStackPointer(int offset)
 /**
  * Set the illegal instruction trap.
  */
-void CPU::setOpTrap() {
+void R6502::setOpTrap() {
   state->opTrap = true;
 }
 
 /**
  * Clear the illegal instruction trap.
  */
-void CPU::clearOpTrap() {
+void R6502::clearOpTrap() {
   state->opTrap = false;
 }
 
@@ -1029,7 +1018,7 @@ void CPU::clearOpTrap() {
  * Will wrap-around if already at the bottom of the stack (This
  * is the same behavior as the real 6502)
  */
-void CPU::stackPush(int data)
+void R6502::stackPush(int data)
 {
   memory->poke(0x100 + state->sp, data);
 
@@ -1046,7 +1035,7 @@ void CPU::stackPush(int data)
  * Will wrap-around if already at the top of the stack (This
  * is the same behavior as the real 6502)
  */
-int CPU::stackPop()
+int R6502::stackPop()
 {
   if (state->sp == 0xff) {
     state->sp = 0x00;
@@ -1060,7 +1049,7 @@ int CPU::stackPop()
 /**
  * Peek at the value currently at the top of the stack
  */
-int CPU::stackPeek()
+int R6502::stackPeek()
 {
   int sp = state->sp;
 
@@ -1076,7 +1065,7 @@ int CPU::stackPeek()
 /*
  * Increment the PC, rolling over if necessary.
  */
-void CPU::incrementPC() {
+void R6502::incrementPC() {
   if (state->pc == 0xffff) {
     state->pc = 0;
   } else {
@@ -1087,35 +1076,35 @@ void CPU::incrementPC() {
 /**
  * Simulate transition from logic-high to logic-low on the INT line.
  */
-void CPU::assertIrq() {
+void R6502::assertIrq() {
   state->irqAsserted = true;
 }
 
 /**
  * Simulate transition from logic-low to logic-high of the INT line.
  */
-void CPU::clearIrq() {
+void R6502::clearIrq() {
   state->irqAsserted = false;
 }
 
 /**
  * Simulate transition from logic-high to logic-low on the NMI line.
  */
-void CPU::assertNmi() {
+void R6502::assertNmi() {
   state->nmiAsserted = true;
 }
 
 /**
  * Simulate transition from logic-low to logic-high of the NMI line.
  */
-void CPU::clearNmi() {
+void R6502::clearNmi() {
   state->nmiAsserted = false;
 }
 
 /**
  * Given two bytes, return an address.
  */
-int CPU::address(int lowByte, int hiByte)
+int R6502::address(int lowByte, int hiByte)
 {
   return ((hiByte << 8) | lowByte) & 0xffff;
 }
@@ -1124,7 +1113,7 @@ int CPU::address(int lowByte, int hiByte)
  * Given a hi byte and a low byte, return the Absolute,X
  * offset address.
  */
-int CPU::xAddress(int lowByte, int hiByte)
+int R6502::xAddress(int lowByte, int hiByte)
 {
   return (address(lowByte, hiByte) + state->x) & 0xffff;
 }
@@ -1133,7 +1122,7 @@ int CPU::xAddress(int lowByte, int hiByte)
  * Given a hi byte and a low byte, return the Absolute,Y
  * offset address.
  */
-int CPU::yAddress(int lowByte, int hiByte)
+int R6502::yAddress(int lowByte, int hiByte)
 {
   return (address(lowByte, hiByte) + state->y) & 0xffff;
 }
@@ -1141,7 +1130,7 @@ int CPU::yAddress(int lowByte, int hiByte)
 /**
  * Given a single byte, compute the Zero Page,X offset address.
  */
-int CPU::zpxAddress(int zp)
+int R6502::zpxAddress(int zp)
 {
   return (zp + state->x) & 0xff;
 }
@@ -1149,7 +1138,7 @@ int CPU::zpxAddress(int zp)
 /**
  * Given a single byte, compute the offset address.
  */
-int CPU::relAddress(byte offset)
+int R6502::relAddress(byte offset)
 {
   return (state->pc + (signed char)offset) & 0xffff;
 }
@@ -1157,7 +1146,7 @@ int CPU::relAddress(byte offset)
 /**
  * Given a single byte, compute the Zero Page,Y offset address.
  */
-int CPU::zpyAddress(int zp)
+int R6502::zpyAddress(int zp)
 {
   return (zp + state->y) & 0xff;
 }
@@ -1165,7 +1154,7 @@ int CPU::zpyAddress(int zp)
 /*
  * Perform a busy-loop for CLOCK_IN_NS nanoseconds
  */
-void CPU::delayLoop(int opcode)
+void R6502::delayLoop(int opcode)
 {
   int clockSteps = Instructions::cycles(opcode & 0xff);
 
@@ -1181,7 +1170,7 @@ void CPU::delayLoop(int opcode)
   }
 }
 
-long CPU::getNanoTicks()
+long R6502::getNanoTicks()
 {
   timespec ts;
 
@@ -1190,7 +1179,7 @@ long CPU::getNanoTicks()
   return ts.tv_nsec;
 }
 
-void CPU::summary()
+void R6502::summary()
 {
   char flags[64];
   char src[512];
@@ -1203,10 +1192,17 @@ void CPU::summary()
 	 state->pc, state->a, state->x, state->y, state->sp, flags);
 }
 
-CPUState *CPU::getState() {
+R6502State *R6502::getState() {
   return state;
 }
 
-MemoryMap *CPU::getMemory() {
+MemoryMap *R6502::getMemory() {
   return memory;
+}
+
+int R6502::disassemble(int addr, char*str, int len)
+{
+  strncpy(str, "???", len);
+
+  return 1;
 }

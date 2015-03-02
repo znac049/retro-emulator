@@ -1,17 +1,20 @@
 #include <ncurses.h>
 
-#include "AtariEm.h"
+#include "gem.h"
 #include "Console.h"
+#include "Timer.h"
 
-Console::Console(CPU *cpu)
+Console::Console(R6502 *cpu)
 {
   proc = cpu;
 
   initScreen();
+  Timer::addListener(this, 999999);
 }
 
 Console::~Console()
 {
+  Timer::stop();
   endwin();
 }
 
@@ -23,15 +26,17 @@ void Console::initScreen() {
     start_color();
     init_pair(1, COLOR_RED,   COLOR_BLACK);
     init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_BLUE,  COLOR_BLACK);
+    init_pair(4, COLOR_WHITE, COLOR_BLACK);
   }
 
   raw();
   keypad(stdscr, true);
   noecho();
 
-  hexWin =    newwin(34, 60, 0,  0);
+  //hexWin =    newwin(34, 60, 0,  0);
   statusWin = newwin(12, 21, 0,  62);
-  codeWin =   new CodeWindow(12, 61, 13, 62, proc);
+  codeWin =   new CodeWindow(30, 61, 13, 62, proc);
 
   updateScreen();
 }
@@ -39,14 +44,14 @@ void Console::initScreen() {
 void Console::updateScreen()
 {
   updateStatus();
-  updateHex();
+  //updateHex();
   updateCode();
 
   refresh();
 
-  wrefresh(hexWin);
+  //wrefresh(hexWin);
   wrefresh(statusWin);
-  //wrefresh(codeWin);
+  codeWin->redraw();
 }
 
 void Console::updateHex()
@@ -94,7 +99,12 @@ void Console::updateCode()
 
 void Console::commandLoop()
 {
-  int ch = getch();
+  int ch;
+
+  Timer::start();
+  updateScreen();
+
+  ch = getch();
 
   while (ch != 'q') {
     switch (ch) {
@@ -112,6 +122,8 @@ void Console::commandLoop()
 
     ch = getch();
   }
+
+  Timer::stop();
 }
 
 void Console::setTitle(WINDOW *w, const char *str)
@@ -133,4 +145,15 @@ void Console::setTitle(WINDOW *w, const char *str)
   if (colorScreen) {
     attroff(COLOR_PAIR(1));
   }
+}
+
+void Console::timerFired()
+{
+  static const char *fish = "/-\\|";
+  static int fishInd = 0;
+
+  mvaddch(0, 0, fish[fishInd++]);
+  fishInd &= 0x03;
+
+  refresh();
 }

@@ -1,28 +1,25 @@
-/*
- * Atari Watchdog device.
- */
-
 #ifndef _CONSOLE_H_
 #define _CONSOLE_H_
 
 #include <ncurses.h>
 
-#include "CPU.h"
+#include "R6502.h"
 #include "CodeWindow.h"
+#include "TimerListener.h"
 
-class Console
+class Console : public TimerListener
 {
  private:
   WINDOW *hexWin;
   WINDOW *statusWin;
   CodeWindow *codeWin;
-  CPU *proc;
+  R6502 *proc;
   bool colorScreen;
 
   void setTitle(WINDOW *w, const char *str);
 
  public:
-  Console(CPU *proc);
+  Console(R6502 *proc);
   ~Console();
 
   void initScreen();
@@ -33,6 +30,8 @@ class Console
   void updateCode();
 
   void commandLoop();
+
+  void timerFired();
 };
 
 #endif

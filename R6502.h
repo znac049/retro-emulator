@@ -1,15 +1,11 @@
-/*
- * CPU.h
- *
- *  Created on: 19 Feb 2015
- *      Author: bob
- */
+#ifndef _R6502_H_
+#define _R6502_H_
 
-#ifndef CPU_H_
-#define CPU_H_
-
+#include "gem.h"
+#include "Processor.h"
 #include "MemoryMap.h"
-#include "CPUState.h"
+#include "R6502State.h"
+#include "R6502Instructions.h"
 
 #define P_CARRY       0x01
 #define P_ZERO        0x02
@@ -35,10 +31,25 @@
 #define NMOS_WITH_INDIRECT_JMP_BUG 1
 #define NMOS_WITH_ROR_BUG 2
 
-class CPU {
- private:
-  MemoryMap *memory;
-  CPUState *state;
+// 6502 Addressing modes
+#define MODE_NUL 0
+#define MODE_ACC 1
+#define MODE_ABS 2
+#define MODE_ABX 3
+#define MODE_ABY 4
+#define MODE_IMM 5
+#define MODE_IMP 6
+#define MODE_IND 7
+#define MODE_INX 8
+#define MODE_INY 9
+#define MODE_REL 10
+#define MODE_ZPG 11
+#define MODE_ZPX 12
+
+class R6502 : public Processor {
+ protected:
+  //MemoryMap *memory;
+  R6502State *state;
 
   int irAddressMode; // Bits 3-5 of IR:  [ | | |X|X|X| | ]
   int irOpMode;      // Bits 6-7 of IR:  [ | | | | | |X|X]
@@ -142,16 +153,17 @@ class CPU {
   long getNanoTicks();
 
  public:
-  CPU(MemoryMap *mem);
-  ~CPU();
+  R6502(MemoryMap *mem);
+  ~R6502();
 
   void reset();
   void step();
   void run();
   void summary();
 
-  CPUState *getState();
+  R6502State *getState();
   MemoryMap *getMemory();
+  int disassemble(int addr, char*str, int len)
 };
 
-#endif /* CPU_H_ */
+#endif

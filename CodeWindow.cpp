@@ -2,7 +2,7 @@
 
 #include "CodeWindow.h"
 
-CodeWindow::CodeWindow(int nrows, int ncols, int atRow, int atCol, CPU *cpu) :
+CodeWindow::CodeWindow(int nrows, int ncols, int atRow, int atCol, R6502 *cpu) :
   Window(nrows, ncols, atRow, atCol)
 {
   height = nrows;
@@ -19,6 +19,7 @@ CodeWindow::CodeWindow(int nrows, int ncols, int atRow, int atCol, CPU *cpu) :
 
   win = newwin(nrows, ncols, atRow, atCol);
   box(win, 0, 0);
+  setTitle("Code");
 }
 
 CodeWindow::~CodeWindow() {
@@ -27,16 +28,17 @@ CodeWindow::~CodeWindow() {
 void CodeWindow::display(int addr)
 {
   // is that address already visible in the window?
+  box(win, 0, 0);
+  setTitle("Code");
+  
   if (!addressVisible(addr)) {
     int pc = proc->getState()->pc;
     int nBytes;
     char code[100];
 
-    // Not on the window,need to redraw the contents to include it
-    wclear(win);
-    box(win, 0,0);
-    setTitle("Code");
+    clear();
 
+    // Not on the window,need to redraw the contents to include it
     for (int y= 1; y < height-1; y++) {
       addresses[y-1] = -1;
 
@@ -64,7 +66,7 @@ void CodeWindow::display(int addr)
 
   highlightAddress(addr);
 
-  refresh();
+  wrefresh(win);
 }
 
 void CodeWindow::highlightAddress(int addr)
@@ -74,10 +76,10 @@ void CodeWindow::highlightAddress(int addr)
 
     if (addresses[y] == addr) {
       waddstr(win, ">");
-      wchgat(win, width-4, A_NORMAL, 1, NULL);
+      wchgat(win, width-4, COLOR_PAIR(4), 1, NULL);
     }
     else {
-      wchgat(win, width-4, A_BOLD, 1, NULL);
+      wchgat(win, width-4, COLOR_PAIR(3), 1, NULL);
       waddstr(win, " ");
     }
   }
@@ -87,19 +89,16 @@ void CodeWindow::highlightAddress(int addr)
 
 bool CodeWindow::addressVisible(int addr)
 {
-  bool inRange = false;
+  if (addr < addresses[0]) {
+    return false;
+  }
 
   for (int y=0; y<height-2; y++) {
-    if (addresses[y] == addr) {
+    if (addr <= addresses[y]){
       return true;
     }
-
-    if (addr > addresses[y]){
-      inRange = true;
-    }
-
-    if (inRange && (addr < addresses[y])) {
-      return true;
+    else if (addresses[y] == -1) {
+      return false;
     }
   }
 
