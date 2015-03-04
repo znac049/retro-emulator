@@ -655,16 +655,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = Machine.cpp Machine.h Device.cpp Device.h Processor.cpp \
-		       Processor.h R6502.cpp R6502.h \
-		       6502Instructions.cpp 6502Instructions.h \
-		       MemoryMap.cpp MemoryMap.h Timer.cpp Timer.h Pokey.cpp Pokey.h \
-		       MemoryDevice.cpp MemoryDevice.h \
-		       ADMachine.cpp ADmachine.h CPUState.cpp CPUState.h \
-		       Console.cpp Console.h CodeWindow.cpp CodeWindow.h \
-		       TimerListener.cpp TimerListener.h DeviceListener.cpp DeviceListener.h \
-		       WatchDog.cpp WatchDog.h \
-		       ADInput.cpp ADInput.h ADOutput.cpp ADOutput.h
+INPUT                  =
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
