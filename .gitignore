@@ -1,0 +1,10 @@
+# Compiled code
+*.o
+*.lib
+
+# Logs and temp files
+*.log
+zz
+*~
+#*
+Thumbs.db

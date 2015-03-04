@@ -1,5 +1,5 @@
 SRCS=gem.cpp \
-	Device.cpp DeviceListener.cpp RegisterBasedDevice \
+	Device.cpp DeviceListener.cpp RegisterBasedDevice.cpp \
 	ADInput.cpp ADInputs.cpp ADSin0.cpp ADSin1.cpp \
 	ADlxOptionSwitches.cpp \
 	ADOutput.cpp ADOutputs.cpp \
@@ -15,7 +15,12 @@ SRCS=gem.cpp \
 	VectorGenerator.cpp \
 	AsteroidsDeluxe.cpp
 
-SRCS=gem.cpp
+SRCS=gem.cpp \
+	ADMachine.cpp Machine.cpp \
+	Processor.cpp R6502.cpp R6502State.cpp R6502Instructions.cpp \
+	MemoryMap.cpp \
+	Device.cpp DeviceListener.cpp RegisterBasedDevice.cpp \
+	Pokey.cpp MemoryDevice.cpp
 
 OBJS=$(subst .cpp,.o,$(SRCS))
 
