@@ -76,13 +76,12 @@ bool Assembler::doPass(int passNumber, FILE *fd)
   try {
     while (!feof(fd)) {
       if (line.read(fd)) {
-	if (line.parse()) {
-	  if (isDirective(line.getInstruction())) {
-	    processDirective(line);
-	  }
-	  else {
-	    assemble(line);
-	  }
+	line.parse();
+	if (isDirective(line.getInstruction())) {
+	  processDirective(line);
+	}
+	else {
+	  assemble(line);
 	}
       }
     }

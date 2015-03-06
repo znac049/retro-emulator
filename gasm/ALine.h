@@ -17,13 +17,26 @@ class ALine {
   static const int MAXLINE;
 
  private:
+  void clear();
+  void clearParts();
+  bool isBlank(char c);
+  char *nextBlank(char*str);
+  char *skipBlanks(char *str);
 
  public:
   ALine();
 
   bool read(FILE *fd);
-  bool parse();
+  void parse();
+  const char *getComment();
+  const char *getLabel();
   const char *getInstruction();
+  const char *getArg();
+
+  bool hasComment();
+  bool hasLabel();
+  bool hasInstruction();
+  bool hasArg();
 };
 
 #endif
