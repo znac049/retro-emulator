@@ -7,18 +7,30 @@ class ALine;
 
 class Assembler 
 {
- potected:
-  enum directrives {};
+ protected:
+  enum Op {EQU, BYTE, WORD, ORG};
+  
   struct pseudoOp {
     const char *op;
     int directive;
-    int org = 0;
   };
 
+  static const pseudoOp pseudoOps[];
+  
+  int org;
+
+ private:
+  int lookupDirective(const char *op);
+  bool isDirective(const char *op);
+  void complainAndThrow(const char *msg, ALine &line);
+
  public:
-  bool DoPass(int passNumber);
+  Assembler();
+
+  bool doPass(int passNumber, FILE *fd);
   void processDirective(ALine &line);
   void assemble(ALine &line);
+
 };
 
 #endif

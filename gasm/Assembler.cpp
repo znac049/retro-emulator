@@ -1,30 +1,63 @@
-#include "Assembler.h"
+#include <stdio.h>
+#include <string.h>
 
-Assembler::pseudoOps = {
-  "=".     Op.EQU,
-  "equ",   Op.EQU,
-  "dc.b",  Op.BYTE,
-  ".byte", Op.BYTE,
-  "dc.w",  Op.WORD,
-  ".word", Op.WORD,
-  "org",   Op.ORG
+#include <exception>
+
+#include "Assembler.h"
+#include "ALine.h"
+
+const Assembler::pseudoOp Assembler::pseudoOps[] = {
+  {"=",     EQU},
+  {"equ",   EQU},
+  {"dc.b",  BYTE},
+  {".byte", BYTE},
+  {"dc.w",  WORD},
+  {".word", WORD},
+  {"org",   ORG}
 };
 
-void processDirective(ALine &line)
+Assembler::Assembler()
 {
-  int op = lookupDirective(line.instruction);
+  org = 0;
+}
+
+void Assembler::assemble(ALine &line)
+{
+}
+
+bool Assembler::isDirective(const char *op)
+{
+  int res = lookupDirective(op);
+
+  return (res == -1) ? false : true;
+}
+
+int Assembler::lookupDirective(const char *op)
+{
+  for (int i=0; i<sizeof(pseudoOps); i++) {
+    if (strcasecmp(op, pseudoOps[i].op) == 0) {
+      return pseudoOps[i].directive;
+    }
+  }
+   
+  return -1;
+}
+
+void Assembler::processDirective(ALine &line)
+{
+  int op = lookupDirective(line.getInstruction());
 
   switch (op) {
-  case Op.EQU:
+  case EQU:
     break;
 
-  case Op.BYTE:
+  case BYTE:
     break;
 
-  case Op.WORD:
+  case WORD:
     break;
 
-  case Op.ORG:
+  case ORG:
     break;
 
   default:
@@ -33,29 +66,33 @@ void processDirective(ALine &line)
   }
 }
 
-bool Assembler::DoPass(int passNumber)
+bool Assembler::doPass(int passNumber, FILE *fd)
 {
   bool stable = true;
   ALine line;
 
-  frewind(fd);
+  rewind(fd);
 
   try {
     while (!feof(fd)) {
-      line.read(fd);
-      line.parse();
-      if (line.ok()) {
-	if (isDirective(line)) {
-	  processDirective(line);
-	}
-	else {
-	  assemble(line);
+      if (line.read(fd)) {
+	if (line.parse()) {
+	  if (isDirective(line.getInstruction())) {
+	    processDirective(line);
+	  }
+	  else {
+	    assemble(line);
+	  }
 	}
       }
     }
   }
-  catch {
+  catch (std::exception& e) {
   }
 
   return stable;
+}
+
+void Assembler::complainAndThrow(const char *msg, ALine &line)
+{
 }

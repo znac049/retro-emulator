@@ -1,6 +1,6 @@
 SRCS=gasm.cpp \
-	Assembler.cpp \
-	IntelHexIO.cpp
+	ALine.cpp \
+	Assembler.cpp 
 
 OBJS=$(subst .cpp,.o,$(SRCS))
 
