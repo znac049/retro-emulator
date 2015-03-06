@@ -41,14 +41,14 @@ bool ALine::read(FILE *fd)
 
   len = strlen(line);
 
-  if (line[len-1] == '\n') {
+  if ((len > 0) && (line[len-1] == '\n')) {
     len--;
 
-    if (line[len-1] == '\r') {
+    if ((len > 0) && (line[len-1] == '\r')) {
       len--;
     }
 
-    line[len] = 0;
+    line[len] = '\0';
   }
 
   return true;
@@ -63,15 +63,18 @@ void ALine::parse()
 
   clearParts();
 
+  printf("Parsing '%s'\n", line);
+
   // Remove any comments
   cp = strchr(line, ';');
   if (cp) {
     strncpy(comment, cp, MAXLINE);
-    *cp = 0;
+    *cp = '\0';
   }
 
   // Do we have a label?
   if (!isBlank(line[0])) {
+    printf("Label present!\n");
     // Label
     rest = nextBlank(line);
     if (rest == 0) {
@@ -79,10 +82,13 @@ void ALine::parse()
       strncpy(label, line, MAXLINE);
       return;
     }
+    else {
+      *rest++ = '\0';
+      strncpy(label, line, MAXLINE);
+    }
 
     rest = skipBlanks(rest);
   }
-
 
   // Label (if present, has been dealt with
   rest = skipBlanks(rest);
@@ -94,10 +100,13 @@ void ALine::parse()
     return;
   }
 
-  *cp = 0;
+  if (*cp) {
+    *cp++ = '\0';
+  }
+
   strncpy(instruction, rest, MAXLINE);
 
-  strncpy(args, skipBlanks(cp+1), MAXLINE);
+  strncpy(args, skipBlanks(cp), MAXLINE);
 
   return;
 }

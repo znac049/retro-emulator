@@ -1,4 +1,4 @@
-	;; 6502 test assembly file
+        ;; 6502 test assembly file
 
 	org $8000
 

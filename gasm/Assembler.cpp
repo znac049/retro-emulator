@@ -34,7 +34,9 @@ bool Assembler::isDirective(const char *op)
 
 int Assembler::lookupDirective(const char *op)
 {
-  for (int i=0; i<sizeof(pseudoOps); i++) {
+  printf("Lookup directive '%s'\n", op);
+
+  for (int i=0; i<(sizeof(pseudoOps) / sizeof(struct pseudoOp)); i++) {
     if (strcasecmp(op, pseudoOps[i].op) == 0) {
       return pseudoOps[i].directive;
     }
@@ -73,20 +75,33 @@ bool Assembler::doPass(int passNumber, FILE *fd)
 
   rewind(fd);
 
+  printf("Pass %d\n", passNumber);
+
   try {
     while (!feof(fd)) {
       if (line.read(fd)) {
 	line.parse();
-	if (isDirective(line.getInstruction())) {
-	  processDirective(line);
+
+	if (line.hasLabel()) {
+	  printf("Label: '%s'\n", line.getLabel());
 	}
-	else {
-	  assemble(line);
+
+	if (line.hasInstruction()) {
+	  printf("Instruction: '%s'\n", line.getInstruction());
+
+	  if (isDirective(line.getInstruction())) {
+	    processDirective(line);
+	  }
+	  else {
+	    assemble(line);
+	  }
 	}
       }
     }
   }
   catch (std::exception& e) {
+    printf("Ouch!");
+    return false;
   }
 
   return stable;
