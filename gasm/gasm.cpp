@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     {NULL, 0, NULL, 0}
   };
 
-  printf("Starting GEM\n");
+  printf("GASM Assembler v1.0\n");
   while ((opt = getopt_long(argc, argv, "Cg:", long_options, NULL)) != -1) {
     switch (opt) {
     case 'C':
