@@ -1,5 +1,7 @@
 SRCS=gasm.cpp \
 	ALine.cpp \
+	ListNode.cpp \
+	Label.cpp LabelTable.cpp \
 	Assembler.cpp 
 
 OBJS=$(subst .cpp,.o,$(SRCS))

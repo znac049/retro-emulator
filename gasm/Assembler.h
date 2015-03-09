@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include "LabelTable.h"
+
 class ALine;
 
 class Assembler 
@@ -16,6 +18,8 @@ class Assembler
   };
 
   static const pseudoOp pseudoOps[];
+
+  LabelTable labels;
   
   int org;
 

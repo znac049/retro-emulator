@@ -5,6 +5,10 @@
 
 #include "Assembler.h"
 #include "ALine.h"
+#include "LabelTable.h"
+#include "Label.h"
+
+#include "UnknownInstruction.h"
 
 const Assembler::pseudoOp Assembler::pseudoOps[] = {
   {"=",     EQU},
@@ -23,6 +27,7 @@ Assembler::Assembler()
 
 void Assembler::assemble(ALine &line)
 {
+  throw UnknownInstruction("Ooops!");
 }
 
 bool Assembler::isDirective(const char *op)
@@ -34,7 +39,7 @@ bool Assembler::isDirective(const char *op)
 
 int Assembler::lookupDirective(const char *op)
 {
-  printf("Lookup directive '%s'\n", op);
+  //printf("Lookup directive '%s'\n", op);
 
   for (int i=0; i<(sizeof(pseudoOps) / sizeof(struct pseudoOp)); i++) {
     if (strcasecmp(op, pseudoOps[i].op) == 0) {
@@ -51,6 +56,14 @@ void Assembler::processDirective(ALine &line)
 
   switch (op) {
   case EQU:
+    if (line.hasLabel()) {
+      Label *l = new Label(line.getLabel(), 42);
+
+      labels.add(l);
+    }
+    else {
+      printf("EQU without label makes no sense!\n");
+    }
     break;
 
   case BYTE:
@@ -99,10 +112,16 @@ bool Assembler::doPass(int passNumber, FILE *fd)
       }
     }
   }
-  catch (std::exception& e) {
-    printf("Ouch!");
+  catch (UnknownInstruction &e) {
+    printf("Unknown Instruction in pass %d: '%s'\n", passNumber, e.what());
     return false;
   }
+  catch (std::exception &e) {
+    printf("Caught an exception of some sort: '%s'\n", e.what());
+    return false;
+  }
+
+  labels.dump();
 
   return stable;
 }

@@ -63,7 +63,7 @@ void ALine::parse()
 
   clearParts();
 
-  printf("Parsing '%s'\n", line);
+  //printf("Parsing '%s'\n", line);
 
   // Remove any comments
   cp = strchr(line, ';');
@@ -73,18 +73,27 @@ void ALine::parse()
   }
 
   // Do we have a label?
-  if (!isBlank(line[0])) {
-    printf("Label present!\n");
+  if ((line[0]) && (!isBlank(line[0]))) {
+    int len;
+
     // Label
     rest = nextBlank(line);
     if (rest == 0) {
       // Nothing after the label
       strncpy(label, line, MAXLINE);
+      len = strlen(label);
+      if (label[len-1] == ':') {
+	label[len-1] = '\0';
+      }
       return;
     }
     else {
       *rest++ = '\0';
       strncpy(label, line, MAXLINE);
+      len = strlen(label);
+      if (label[len-1] == ':') {
+	label[len-1] = '\0';
+      }
     }
 
     rest = skipBlanks(rest);
