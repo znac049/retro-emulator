@@ -15,18 +15,18 @@ LabelTable::LabelTable()
 
 void LabelTable::add(Label *l)
 {
-  labels = new ListNode<Label *>(l, labels);
+  labels = new ListNode(l, labels);
   numItems++;
 }
 
 void LabelTable::dump()
 {
-  ListNode<Label *> *node = labels;
+  ListNode *node = labels;
 
   printf("Label table (%d entries):\n", numItems);
 
   for (int i=0; i<numItems; i++) {
-    Label *lab = node->data;
+    Label *lab = node->label;
 
     printf("%-25s = $%04x (%d) ", lab->getName(), lab->getValue(), lab->getValue());
 

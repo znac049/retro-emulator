@@ -5,19 +5,20 @@
 
 using namespace std;
 
-template<class T>
+class Label;
+
 class ListNode
 {
  private:
-  ListNode<T> *nextNode;
+  ListNode *nextNode;
 
  public:
-  T data;
+  Label *label;
 
  public:
-  ListNode(const T *item, ListNode<T>* nextItem = NULL);
+  ListNode(Label *item, ListNode *nextItem);
 
-  ListNode<T> *next();
+  ListNode *next();
 };
 
 #endif

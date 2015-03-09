@@ -1,17 +1,16 @@
 #include <stdlib.h>
 
 #include "ListNode.h"
+#include "Label.h"
 
-template<class T> 
-ListNode<T>::ListNode(const T *item, ListNode<T>* nextItem)
+ListNode::ListNode(Label *item, ListNode *nextItem)
 {
-  this->data = item;
-  this->nextNode = nextItem;
+  label = item;
+  nextNode = nextItem;
 }
 
-template<class T>
-ListNode<T> *ListNode<T>::next()
+ListNode *ListNode::next()
 {
-  return this->nextNode;
+  return nextNode;
 }
 

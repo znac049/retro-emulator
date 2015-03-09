@@ -8,7 +8,7 @@ class Label;
 class LabelTable
 {
  private:
-  ListNode<Label *> *labels;
+  ListNode *labels;
   int numItems;
 
  public:
