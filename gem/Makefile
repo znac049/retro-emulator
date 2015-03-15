@@ -1,52 +1,41 @@
-SRCS=gem.cpp \
-	Device.cpp DeviceListener.cpp RegisterBasedDevice.cpp \
-	ADInput.cpp ADInputs.cpp ADSin0.cpp ADSin1.cpp \
-	ADlxOptionSwitches.cpp \
-	ADOutput.cpp ADOutputs.cpp \
-	Pokey.cpp MemoryDevice.cpp \
-	WatchDog.cpp \
-	Processor.cpp \
-	R6502.cpp R6502State.cpp R6502Instructions.cpp \
-	i8080.cpp \
-	Window.cpp CodeWindow.cpp \
-	Console.cpp \
-	MemoryMap.cpp \
-	Timer.cpp TimerListener.cpp \
-	VectorGenerator.cpp \
-	AsteroidsDeluxe.cpp
+MODULES= CPUs Devices Machines Debugger UI
 
 SRCS=gem.cpp \
-	ADMachine.cpp Machine.cpp \
-	Processor.cpp R6502.cpp R6502State.cpp R6502Instructions.cpp \
 	MemoryMap.cpp \
-	Device.cpp DeviceListener.cpp RegisterBasedDevice.cpp \
-	Pokey.cpp MemoryDevice.cpp
+	Devices/Device.cpp \
+	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
+	Devices/Pokey.cpp \
+	Machines/Machine.cpp \
+	Machines/ADMachine.cpp \
+	CPUs/CPU.cpp CPUs/CPUState.cpp \
+	CPUs/CPU6502.cpp CPUs/State6502.cpp
 
-OBJS=$(subst .cpp,.o,$(SRCS))
+OBJS=$(subst .cpp,.o,$(addprefix build/,$(notdir $(SRCS))))
 
 CC=gcc
 CXX=g++
 RM=rm -f
 
-CPPFLAGS=-g -pthread -Icpus -Idevices -Isystems -Iui
+CXXFLAGS=-g -pthread $(addprefix -I,$(MODULES))
 LDFLAGS=-g 
 LDLIBS=-lrt -lncurses
 
-all: gem
+vpath %.cpp $(MODULES)
+
+build/%.o: %.cpp
+	$(CC) -c $(CXXFLAGS) $< -o build/$(notdir $@)
+
+all: builddir gem
+
+builddir:
+	mkdir -p build
 
 gem: $(OBJS)
 	$(CXX) $(LDFLAGS) -o gem $(OBJS) $(LDLIBS) 
 
-depend: .depend
-
-.depend: $(SRCS)
-	$(RM) ./.depend
-	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
-
 clean:
-	$(RM) $(OBJS) *~ gem
+	$(RM) $(OBJS) build/ *~ gem
 
 dist-clean: clean
 	$(RM) *~ .depend
 
-include .depend

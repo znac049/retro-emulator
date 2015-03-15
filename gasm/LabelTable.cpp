@@ -17,6 +17,8 @@ void LabelTable::add(Label *l)
 {
   labels = new ListNode(l, labels);
   numItems++;
+
+  printf("'%s' added to label table\n", l->getName());
 }
 
 void LabelTable::dump()

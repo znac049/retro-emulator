@@ -1,20 +1,8 @@
 #ifndef _R6502_H_
 #define _R6502_H_
 
-#include "gem.h"
-#include "Processor.h"
-#include "MemoryMap.h"
-#include "R6502State.h"
-#include "R6502Instructions.h"
-
-#define P_CARRY       0x01
-#define P_ZERO        0x02
-#define P_IRQ_DISABLE 0x04
-#define P_DECIMAL     0x08
-#define P_BREAK       0x10
-/* Bit 5 is always set */
-#define P_OVERFLOW    0x40
-#define P_NEGATIVE    0x80
+#include "../gem.h"
+#include "CPU.h"
 
 /* NMI vector */
 #define NMI_VECTOR_L 0xfffa
@@ -31,25 +19,13 @@
 #define NMOS_WITH_INDIRECT_JMP_BUG 1
 #define NMOS_WITH_ROR_BUG 2
 
-// 6502 Addressing modes
-#define MODE_NUL 0
-#define MODE_ACC 1
-#define MODE_ABS 2
-#define MODE_ABX 3
-#define MODE_ABY 4
-#define MODE_IMM 5
-#define MODE_IMP 6
-#define MODE_IND 7
-#define MODE_INX 8
-#define MODE_INY 9
-#define MODE_REL 10
-#define MODE_ZPG 11
-#define MODE_ZPX 12
+class MemoryMap;
+class State6502;
 
-class R6502 : public Processor {
+class CPU6502 : public CPU {
  protected:
   //MemoryMap *memory;
-  R6502State *state;
+  State6502 *state;
 
   int irAddressMode; // Bits 3-5 of IR:  [ | | |X|X|X| | ]
   int irOpMode;      // Bits 6-7 of IR:  [ | | | | | |X|X]
@@ -153,17 +129,17 @@ class R6502 : public Processor {
   long getNanoTicks();
 
  public:
-  R6502(MemoryMap *mem);
-  ~R6502();
+  CPU6502(MemoryMap *mem);
+  ~CPU6502();
 
   void reset();
   void step();
   void run();
   void summary();
 
-  R6502State *getState();
+  State6502 *getState();
   MemoryMap *getMemory();
-  int disassemble(int addr, char*str, int len)
+  int disassemble(int addr, char*str, int len);
 };
 
 #endif

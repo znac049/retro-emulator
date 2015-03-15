@@ -37,6 +37,8 @@ class ALine {
   bool hasLabel();
   bool hasInstruction();
   bool hasArg();
+
+  void dump();
 };
 
 #endif

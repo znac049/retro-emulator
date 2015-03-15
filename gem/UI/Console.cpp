@@ -1,10 +1,11 @@
 #include <ncurses.h>
 
-#include "gem.h"
 #include "Console.h"
-#include "Timer.h"
+#include "../Timer.h"
+#include "../CPUs/CPU.h"
+#include "../UI/CodeWindow.h"
 
-Console::Console(R6502 *cpu)
+Console::Console(CPU *cpu)
 {
   proc = cpu;
 

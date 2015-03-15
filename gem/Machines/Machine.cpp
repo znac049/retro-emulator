@@ -1,4 +1,6 @@
 #include "Machine.h"
+#include "../MemoryMap.h"
+#include "../CPUs/CPU.h"
 
 Machine::Machine()
 {
@@ -14,5 +16,5 @@ void Machine::configureDevices()
 
 void Machine::configureProcessor()
 {
-  proc = new R6502(memory);
+  proc = new CPU(memory);
 }

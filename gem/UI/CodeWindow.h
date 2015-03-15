@@ -3,15 +3,16 @@
 
 #include <ncurses.h>
 
-#include "R6502.h"
-#include "MemoryMap.h"
-#include "CPUState.h"
 #include "Window.h"
+
+class R6502;
+class ProcessorState;
+class MemoryMap;
 
 class CodeWindow : public Window {
  private:
   R6502 *proc;
-  CPUState *state;
+  ProcessorState *state;
   MemoryMap *mem;
 
   int *addresses;

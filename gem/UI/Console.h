@@ -1,11 +1,14 @@
 #ifndef _CONSOLE_H_
 #define _CONSOLE_H_
 
+#include "../gem.h"
+
 #include <ncurses.h>
 
-#include "R6502.h"
-#include "CodeWindow.h"
-#include "TimerListener.h"
+class CodeWindow;
+class CPU;
+
+#include "../TimerListener.h"
 
 class Console : public TimerListener
 {
@@ -13,13 +16,13 @@ class Console : public TimerListener
   WINDOW *hexWin;
   WINDOW *statusWin;
   CodeWindow *codeWin;
-  R6502 *proc;
+  CPU *proc;
   bool colorScreen;
 
   void setTitle(WINDOW *w, const char *str);
 
  public:
-  Console(R6502 *proc);
+  Console(CPU *proc);
   ~Console();
 
   void initScreen();

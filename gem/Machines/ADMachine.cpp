@@ -1,6 +1,18 @@
-#include "AsteroidsDeluxe.h"
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
 
-void AsteroidsDeluxe::configureDevice()
+#include "ADMachine.h"
+
+#include "../MemoryMap.h"
+#include "../CPUs/CPU6502.h"
+#include "../Devices/Pokey.h"
+#include "../Devices/MemoryDevice.h"
+
+#include "../UI/Console.h"
+#include "../TimerListener.h"
+
+void ADMachine::configureDevice()
 {
   ram = new MemoryDevice(2048, 0);
   rom = new MemoryDevice(8192, 1);
@@ -13,6 +25,7 @@ void AsteroidsDeluxe::configureDevice()
 
   pokey = new Pokey();
 
+  mm = new MemoryMap(0x10000);
   mm->connect(ram,            0);
   mm->connect(pokey,          0x2c00);
   mm->connect(vectorRam,      0x4000);
@@ -23,13 +36,13 @@ void AsteroidsDeluxe::configureDevice()
   rom->load("roms/adlx.rom");
   vectorRom->load("roms/adlx.vrom");
 
-  proc = new R6502(mm);
-  tty = new Console(proc);
+  proc = new CPU6502(mm);
+  tty = new Console((CPU6502 *)proc);
 
   proc->reset();
 }
 
-AsteroidsDeluxe::~AsteroidsDeluxe()
+ADMachine::~ADMachine()
 {
   ualarm(0, 0);
 
@@ -37,7 +50,7 @@ AsteroidsDeluxe::~AsteroidsDeluxe()
   delete tty;
 }
 
-void AsteroidsDeluxe::enterCommandLoop()
+void ADMachine::enterCommandLoop()
 {
   tty->commandLoop();
 }

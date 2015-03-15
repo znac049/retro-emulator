@@ -1,20 +1,17 @@
 #ifndef _AD_H_
 #define _AD_H_
 
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
-
 #include "Machine.h"
-#include "MemoryDevice.h"
-#include "Pokey.h"
-#include "R6502.h"
 
-#include "Console.h"
-#include "TimerListener.h"
+class MemoryMap;
+class MemoryDevice;
+class Pokey;
+class Console;
 
-class AsteroidsDeluxe : public Machine {
+class ADMachine : public Machine {
  private:
+  MemoryMap          *mm;
+
   MemoryDevice       *ram;
   MemoryDevice       *rom;
   MemoryDevice       *vectorRam;
@@ -27,6 +24,8 @@ class AsteroidsDeluxe : public Machine {
  protected:
 
  public:
+  ~ADMachine();
+
   void configureDevice();
 
   void enterCommandLoop();

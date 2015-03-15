@@ -8,6 +8,8 @@
 
 Label::Label(const char *labName, int val, Access acc)
 {
+  printf("MAKE LABEL: '%s'\n", labName);
+
   name = strdup(labName);
   value = val;
   access = acc;

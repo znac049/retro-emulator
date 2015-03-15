@@ -1,7 +1,10 @@
+#include <stdio.h>
 #include <string.h>
 
-#include "gem.h"
+#include "../gem.h"
+
 #include "Device.h"
+#include "DeviceListener.h"
 
 Device::Device()
 {

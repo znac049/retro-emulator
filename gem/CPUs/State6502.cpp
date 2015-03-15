@@ -1,20 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "R6502.h"
-#include "CPUState.h"
-#include "Instructions.h"
+#include "State6502.h"
+#include "../MemoryMap.h"
 
-CPUState::CPUState(MemoryMap *mem) {
-  memory = mem;
+#include "6502.inst"
+
+State6502::State6502(MemoryMap *mem) : CPUState(mem) {
+  instructionNames = _instructionNames;
+  instructionSizes = _instructionSizes;
+  instructionCycles = _instructionSizes;
+  addressingModes = _addressingModes;
 
   reset();
 }
 
-CPUState::~CPUState() {
+State6502::~State6502() {
 }
 
-void CPUState::reset()
+void State6502::reset() : reset()
 {
   a = 0;
   x = y = 0;
@@ -43,7 +47,7 @@ void CPUState::reset()
   running = false;
 }
 
-int CPUState::load(int addr)
+int State6502::load(int addr)
 {
   lastPc = pc;
   pc = addr;
@@ -62,7 +66,7 @@ int CPUState::load(int addr)
   return instSize;
 }
 
-byte CPUState::getStatusFlag()
+byte State6502::getStatusFlag()
 {
   byte status = 0x20; /* Bit 5 is always set */
 
@@ -97,7 +101,7 @@ byte CPUState::getStatusFlag()
   return status;
 }
 
-void CPUState::getStatusFlagAsString(char *str, int len)
+void State6502::getStatusFlagAsString(char *str, int len)
 {
   snprintf(str, len, "[%c%c%c%c%c%c%c%c]",
 	   negativeFlag?'N':'n',
@@ -110,9 +114,9 @@ void CPUState::getStatusFlagAsString(char *str, int len)
 	   carryFlag?'C':'c');
 }
 
-void CPUState::disassembleOp(char *str, int len)
+void State6502::disassembleOp(char *str, int len)
 {
-  const char *mnemonic = Instructions::mnemonic(ir);
+  const char *mnemonic = getInstructionName();
   char address[256];
 
   if (mnemonic == NULL) {
@@ -121,7 +125,7 @@ void CPUState::disassembleOp(char *str, int len)
     return;
   }
 
-  switch (Instructions::mode(ir)) {
+  switch (getAddressingMode()) {
   case MODE_ABS:
     memory->getAddressName(address, sizeof(address), argsw());
     snprintf(str, len, "%s %s", mnemonic, address);
@@ -185,7 +189,7 @@ void CPUState::disassembleOp(char *str, int len)
     break;
 
   default:
-    snprintf(str, len, "!!!! IR=$%02x mode=%d", ir, Instructions::mode(ir));
+    snprintf(str, len, "!!!! IR=$%02x mode=%d", ir, getAddressingMode());
     break;
   }
 }

@@ -54,6 +54,8 @@ void Assembler::processDirective(ALine &line)
 {
   int op = lookupDirective(line.getInstruction());
 
+  line.dump();
+
   switch (op) {
   case EQU:
     if (line.hasLabel()) {

@@ -189,3 +189,24 @@ bool ALine::hasArg()
 {
   return (args[0] != 0) ? true : false;
 }
+
+void ALine::dump()
+{
+  printf("Dumping line:\n");
+
+  if (hasLabel()) {
+    printf("Label: %s\n", getLabel());
+  }
+
+  if (hasInstruction()) {
+    printf("Instruction: %s\n", getInstruction());
+  }
+
+  if (hasArg()) {
+    printf("Arg: %s\n", getArg());
+  }
+
+  if (hasComment()) {
+    printf("Comment: %s\n", getComment());
+  }
+}

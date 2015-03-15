@@ -1,6 +1,9 @@
 #include <ncurses.h>
 
 #include "CodeWindow.h"
+#include "../MemoryMap.h"
+#include "../CPUs/R6502.h"
+#include "../CPUs/ProcessorState.h"
 
 CodeWindow::CodeWindow(int nrows, int ncols, int atRow, int atCol, R6502 *cpu) :
   Window(nrows, ncols, atRow, atCol)

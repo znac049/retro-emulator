@@ -1,11 +1,11 @@
 #ifndef _DEVICE_H_
 #define _DEVICE_H_
 
-#include "gem.h"
-
-#include "DeviceListener.h"
+#include "../gem.h"
 
 #define MAXDEVNAME 128
+
+class DeviceListener;
 
 class Device
 {
