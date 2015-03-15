@@ -4,11 +4,8 @@ SRCS=gem.cpp \
 	MemoryMap.cpp \
 	Devices/Device.cpp \
 	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
-	Devices/Pokey.cpp \
 	Machines/Machine.cpp \
-	Machines/ADMachine.cpp \
-	CPUs/CPU.cpp CPUs/CPUState.cpp \
-	CPUs/CPU6502.cpp CPUs/State6502.cpp
+	CPUs/CPU.cpp CPUs/CPUState.cpp
 
 OBJS=$(subst .cpp,.o,$(addprefix build/,$(notdir $(SRCS))))
 

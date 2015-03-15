@@ -4,18 +4,6 @@
 #include "../gem.h"
 #include "CPU.h"
 
-/* NMI vector */
-#define NMI_VECTOR_L 0xfffa
-#define NMI_VECTOR_H 0xfffb
-
-/* Reset vector */
-#define RST_VECTOR_L 0xfffc
-#define RST_VECTOR_H 0xfffd
-
-/* IRQ vector */
-#define IRQ_VECTOR_L 0xfffe
-#define IRQ_VECTOR_H 0xffff
-
 #define NMOS_WITH_INDIRECT_JMP_BUG 1
 #define NMOS_WITH_ROR_BUG 2
 

@@ -41,7 +41,7 @@ class CPUState {
 
   bool running;
 
- private:
+ protected:
   word argsw() { return (((word)args[1])<<8) | args[0]; }
 
  public:

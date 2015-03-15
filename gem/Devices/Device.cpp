@@ -24,6 +24,11 @@ void Device::setName(const char *newName)
   strncpy(name, newName, MAXDEVNAME);
 }
 
+byte Device::readByte(int addr)
+{
+  return 0xff;
+}
+
 byte Device::peek(int addr)
 {
   byte res;
@@ -39,6 +44,9 @@ byte Device::peek(int addr)
   fireReadListener(addr);
 
   return res;
+}
+
+void writeByte(int addr, byte b) {
 }
 
 void Device::poke(int addr, byte b)

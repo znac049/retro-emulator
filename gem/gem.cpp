@@ -4,6 +4,7 @@
 #include <getopt.h>
 
 #include "gem.h"
+#include "Machine.h"
 
 void startGameWithConsole(const char *game)
 {
@@ -11,6 +12,7 @@ void startGameWithConsole(const char *game)
 
 void startGame(const char *game)
 {
+  Machine m;
 }
 
 int main(int argc, char **argv)

@@ -18,8 +18,10 @@ State6502::State6502(MemoryMap *mem) : CPUState(mem) {
 State6502::~State6502() {
 }
 
-void State6502::reset() : reset()
+void State6502::reset()
 {
+  CPUState::reset();
+
   a = 0;
   x = y = 0;
 
@@ -57,7 +59,7 @@ int State6502::load(int addr)
 
   opTrap = false;
 
-  instSize = Instructions::size(ir);
+  instSize = getInstructionSize();
   for (int i = 0; i < instSize-1; i++) {
     args[i] = memory->peek(pc);
     pc++;

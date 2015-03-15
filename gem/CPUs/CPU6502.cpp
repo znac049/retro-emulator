@@ -605,13 +605,13 @@ void CPU6502::step()
 
 void CPU6502::handleIrq(word returnPc)
 {
-  handleInterrupt(returnPc, IRQ_VECTOR_L, IRQ_VECTOR_H);
+  handleInterrupt(returnPc, State6502::IRQ_VECTOR_L, State6502::IRQ_VECTOR_H);
   clearIrq();
 }
 
 void CPU6502::handleNmi()
 {
-  handleInterrupt(state->pc, NMI_VECTOR_L, NMI_VECTOR_H);
+  handleInterrupt(state->pc, State6502::NMI_VECTOR_L, State6502::NMI_VECTOR_H);
   clearNmi();
 }
 
@@ -945,37 +945,37 @@ int CPU6502::getProcessorStatus()
 }
 
 void CPU6502::setProcessorStatus(int value) {
-  if ((value & P_CARRY) != 0)
+  if ((value & State6502::P_CARRY) != 0)
     setCarryFlag();
   else
     clearCarryFlag();
 
-  if ((value & P_ZERO) != 0)
+  if ((value & State6502::P_ZERO) != 0)
     setZeroFlag();
   else
     clearZeroFlag();
 
-  if ((value & P_IRQ_DISABLE) != 0)
+  if ((value & State6502::P_IRQ_DISABLE) != 0)
     setIrqDisableFlag();
   else
     clearIrqDisableFlag();
 
-  if ((value & P_DECIMAL) != 0)
+  if ((value & State6502::P_DECIMAL) != 0)
     setDecimalModeFlag();
   else
     clearDecimalModeFlag();
 
-  if ((value & P_BREAK) != 0)
+  if ((value & State6502::P_BREAK) != 0)
     setBreakFlag();
   else
     clearBreakFlag();
 
-  if ((value & P_OVERFLOW) != 0)
+  if ((value & State6502::P_OVERFLOW) != 0)
     setOverflowFlag();
   else
     clearOverflowFlag();
 
-  if ((value & P_NEGATIVE) != 0)
+  if ((value & State6502::P_NEGATIVE) != 0)
     setNegativeFlag();
   else
     clearNegativeFlag();
