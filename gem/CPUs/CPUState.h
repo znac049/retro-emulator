@@ -32,7 +32,7 @@ class CPUState {
   byte ir;
   byte args[2];
 
-  word lastPc;
+  int lastPc;
 
   int instSize;
   bool opTrap;
@@ -42,7 +42,7 @@ class CPUState {
   bool running;
 
  protected:
-  word argsw() { return (((word)args[1])<<8) | args[0]; }
+  int argsw() { return ((args[1])<<8) | args[0]; }
 
  public:
   CPUState(MemoryMap *mem);

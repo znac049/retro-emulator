@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "Debug.h"
 #include "MemoryMap.h"
 
 MemoryMap::MemoryMap(int size)
@@ -16,8 +17,6 @@ MemoryMap::~MemoryMap()
 
 bool MemoryMap::connect(Device *dev, int addr)
 {
-  //printf("Connecting device '%s' at base address $%04x\n", dev->getName(), addr);
-
   add(dev, addr, addr + dev->getSize() - 1);
 
   return true;
@@ -44,9 +43,9 @@ void MemoryMap::poke(int addr, byte b)
   }
 }
 
-word MemoryMap::peekw(int addr)
+int MemoryMap::peekw(int addr)
 {
-  word w = 0;
+  int w = 0;
   Node *ent = findDevice(addr);
 
   if (ent != NULL) {
@@ -59,7 +58,7 @@ word MemoryMap::peekw(int addr)
   return w;
 }
 
-void MemoryMap::pokew(int addr, word w)
+void MemoryMap::pokew(int addr, int w)
 {
   Node *ent = findDevice(addr);
 
@@ -78,6 +77,8 @@ void MemoryMap::add(Device *dev, int from, int to)
   Node *node;
 
   if (from > to) {
+    Debug::logf(10, "start is after end when adding device to memory map\n");
+
     throw "start is after end when adding device to memory map";
   }
 
@@ -112,6 +113,8 @@ void MemoryMap::add(Device *dev, int from, int to)
 
     prev->next = ent;
   }
+
+  Debug::logf(10, "have we added or not???\n");
 }
 
 MemoryMap::Node *MemoryMap::insert(Node *ent, Node *node)

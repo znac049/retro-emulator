@@ -8,12 +8,21 @@ class Machine {
  protected:
   CPU *proc;
   MemoryMap *memory;
+  char *machineName;
+
+ public:
+  static const int MaxName = 200;
 
  public:
   Machine();
 
+  void setName(const char *newName);
+  const char *getName();
+
   virtual void configureDevices();
   virtual void configureProcessor();
+
+  void printSummary();
 };
 
 #endif

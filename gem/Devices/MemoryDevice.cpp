@@ -3,11 +3,11 @@
 #include <malloc.h>
 
 #include "../gem.h"
+#include "../Debug.h"
 
 #include "MemoryDevice.h"
 
-MemoryDevice::MemoryDevice(int size_in_bytes, short int ro) :
-  Device()
+MemoryDevice::MemoryDevice(int size_in_bytes, bool ro) : Device()
 {
   read_only = ro;
   ram_size = size_in_bytes;

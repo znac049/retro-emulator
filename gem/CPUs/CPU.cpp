@@ -8,7 +8,8 @@ CPU::CPU(MemoryMap *mem)
   memory = mem;
   running = false;
 
-  memory->dump();
+  cpuName = new char[MaxName];
+  setName("Generic CPU");
 }
 
 CPU::~CPU()
@@ -41,4 +42,14 @@ int CPU::disassemble(int addr, char*str, int len)
   strncpy(str, "???", len);
 
   return 1;
+}
+
+void CPU::setName(const char *newName)
+{
+  strncpy(cpuName, newName, MaxName);
+}
+
+const char *CPU::getName()
+{
+  return cpuName;
 }

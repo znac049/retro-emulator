@@ -8,7 +8,7 @@
 #define MAXSTR 255
 
 typedef unsigned char byte;
-typedef unsigned short word;
+//typedef unsigned int word;
 
 typedef unsigned int useconds_t;
 

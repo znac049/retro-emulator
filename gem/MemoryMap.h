@@ -33,8 +33,8 @@ class MemoryMap
   byte peek(int addr);
   void poke(int addr, byte b);
 
-  word peekw(int addr);
-  void pokew(int addr, word w);
+  int peekw(int addr);
+  void pokew(int addr, int w);
 
   void add(Device *dev, int from, int to);
   void dump();

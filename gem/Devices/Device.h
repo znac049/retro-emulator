@@ -23,7 +23,7 @@ class Device
 
   virtual bool getAddressName(char *str, int len, int addr);
 
-  int getSize() {return size;};
+  virtual int getSize() {return size;};
   void setSize(int newSize) {size = newSize;};
 
   byte peek(int addr);

@@ -1,6 +1,7 @@
 MODULES= CPUs Devices Machines Debugger UI
 
 SRCS=gem.cpp \
+	Debug.cpp \
 	MemoryMap.cpp \
 	Devices/Device.cpp \
 	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
@@ -13,7 +14,7 @@ CC=gcc
 CXX=g++
 RM=rm -f
 
-CXXFLAGS=-g -pthread $(addprefix -I,$(MODULES))
+CXXFLAGS=-g -O0 -pthread $(addprefix -I,$(MODULES))
 LDFLAGS=-g 
 LDLIBS=-lrt -lncurses -lstdc++
 

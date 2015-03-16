@@ -4,15 +4,21 @@
 #include <getopt.h>
 
 #include "gem.h"
+#include "Debug.h"
 #include "Machine.h"
 
 void startGameWithConsole(const char *game)
 {
+  Machine m;
+
+  m.printSummary();
 }
 
 void startGame(const char *game)
 {
   Machine m;
+
+  m.printSummary();
 }
 
 int main(int argc, char **argv)
@@ -20,6 +26,8 @@ int main(int argc, char **argv)
   int opt;
   bool console = false;
   char gameName[MAXSTR];
+
+  Debug::setLevel(20);
 
   strncpy(gameName, "AD-v3", MAXSTR);
 

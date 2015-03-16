@@ -11,7 +11,7 @@ class MemoryDevice : public Device
   int ram_size;
 
  public:
-  MemoryDevice(int size_in_bytes, short int ro);
+  MemoryDevice(int size_in_bytes, bool ro);
   ~MemoryDevice();
 
   byte peek(int addr);

@@ -14,6 +14,11 @@ class CPU {
   bool littleEndian;
 
  public:
+  static const int MaxName = 100;
+
+  char *cpuName;
+
+ public:
   CPU(MemoryMap *mem);
   ~CPU();
 
@@ -26,6 +31,9 @@ class CPU {
   virtual MemoryMap *getMemory();
 
   virtual int disassemble(int addr, char *str, int len);
+
+  void setName(const char *newName);
+  const char *getName();
 };
 
 #endif
