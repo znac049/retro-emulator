@@ -15,7 +15,7 @@ RM=rm -f
 
 CXXFLAGS=-g -pthread $(addprefix -I,$(MODULES))
 LDFLAGS=-g 
-LDLIBS=-lrt -lncurses
+LDLIBS=-lrt -lncurses -lstdc++
 
 vpath %.cpp $(MODULES)
 

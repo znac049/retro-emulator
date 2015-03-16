@@ -46,7 +46,7 @@ byte Device::peek(int addr)
   return res;
 }
 
-void writeByte(int addr, byte b) {
+void Device::writeByte(int addr, byte b) {
 }
 
 void Device::poke(int addr, byte b)
