@@ -6,12 +6,15 @@
 #include "gem.h"
 #include "Debug.h"
 #include "Machine.h"
+#include "CLI.h"
 
 void startGameWithConsole(const char *game)
 {
   Machine m;
+  CLI cli(&m);;
 
   m.printSummary();
+  cli.go();
 }
 
 void startGame(const char *game)
