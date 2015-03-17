@@ -131,3 +131,10 @@ void Timer::optimizeTocks()
   }
   win->redraw();
 }
+
+long int Timer::getNanoTicks()
+{
+	// TODO: write the code!
+
+	return 0;
+}

@@ -31,6 +31,8 @@ class Timer {
   static void addListener(TimerListener *lstnr, useconds_t usec);
   static void start();
   static void stop();
+
+  static long int getNanoTicks();
 };
 
 #endif

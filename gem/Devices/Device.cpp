@@ -57,6 +57,9 @@ void Device::poke(int addr, byte b)
 	snprintf(error, MAXSTR, "Address $%04x (%d) out of range in device '%s::poke'", addr, addr, getName());
 	throw error;
   }
+
+  poke(addr, b);
+  fireWriteListener(addr, b);
 }
 
 bool Device::save(const char *loc, bool overwrite)
