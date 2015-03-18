@@ -6,17 +6,40 @@ class Machine;
 class CLI
 {
  private:
+  typedef struct CommandEnt {
+    const char *cmd;
+    int val;
+  } CommandEnt_t;
+
   static const int MaxLine = 200;
+  static const CommandEnt_t Commands[];
+  
+  enum Cmds {NoCmd=-1,            QuitCmd=1,           
+	     HelpCmd,             GoCmd,            
+	     StepCmd,             AddBreakpointCmd, 
+	     ListBreakpointsCmd,  DelBreakpointCmd, 
+	     ClearBreakpointsCmd, AddWatchpointCmd, 
+	     ListWatchpointsCmd,  DelWatchpointCmd,
+	     ClearWatchpointsCmd, RegsCmd,
+	     ResetCmd,            DumpBytesCmd,
+	     DumpWordsCmd,        BaseCmd,
+	     UnassembleCmd
+  };
 
   bool isTty;
   Machine *machine;
+  bool running;
   
  protected:
-  void handleLine(char *line);
   bool isBlank(char c);
   char *skipWord(char *line);
   char *skipBlanks(char *line);
+  char *chomp(char *line);
+
   int makeArgs(char *line, char **argv, int maxArgs);
+  void handleLine(char *line);
+  int lookupCommand(char *cmdName);
+  int compareCommand(char *str, char *command);
 
  public:
   CLI(Machine *m);
