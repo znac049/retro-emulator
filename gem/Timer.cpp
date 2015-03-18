@@ -134,7 +134,7 @@ void Timer::optimizeTocks()
 
 long int Timer::getNanoTicks()
 {
-	// TODO: write the code!
+  // TODO: write the code!
 
-	return 0;
+  return 0;
 }

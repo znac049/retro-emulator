@@ -1,32 +1,25 @@
-/*
- * AddressHash.h
- *
- *  Created on: 17 Mar 2015
- *      Author: bob
- */
-
 #ifndef _ADDRESSHASH_H_
 #define _ADDRESSHASH_H_
 
 class AddressHash {
-private:
-	static const int HashEntrySize = 256;
-	int **hashRoot;
+ private:
+  static const int HashEntrySize = 256;
+  int **hashRoot;
 
-protected:
-	int hits;
-	int misses;
+ protected:
+  int hits;
+  int misses;
 
-private:
-	int *newEntry();
+ private:
+  int *newEntry();
 
-public:
-	AddressHash();
-	~AddressHash();
+ public:
+  AddressHash();
+  ~AddressHash();
 
-	void clearAll();
-	void set(int addr, int val);
-	int get(int addr);
+  void clearAll();
+  void set(int addr, int val);
+  int get(int addr);
 };
 
 #endif

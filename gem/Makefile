@@ -1,4 +1,4 @@
-MODULES= CPUs Devices Machines Debugger UI
+MODULES= CPUs Debugger Devices Machines Misc UI
 
 SRCS=gem.cpp \
 	Debug.cpp \
@@ -7,7 +7,8 @@ SRCS=gem.cpp \
 	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
 	Machines/Machine.cpp \
 	CPUs/CPU.cpp CPUs/CPUState.cpp \
-	UI/CLI.cpp
+	UI/CLI.cpp \
+	Misc/AddressHash.cpp Misc/PointTable.cpp
 
 OBJS=$(subst .cpp,.o,$(addprefix build/,$(notdir $(SRCS))))
 

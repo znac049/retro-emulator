@@ -1,37 +1,26 @@
-/*
- * BreakpointTable.cpp
- *
- *  Created on: 17 Mar 2015
- *      Author: bob
- */
-
 #include "PointTable.h"
 
 PointTable::PointTable() : AddressHash()
 {
-	numPoints = 0;
-}
-
-PointTable::~PointTable() : ~AddressHash()
-{
+  numPoints = 0;
 }
 
 void PointTable::clearAllPoints()
 {
-	clearAll();
+  clearAll();
 }
 
 void PointTable::clearPoint(int addr)
 {
-	set(addr, false);
+  set(addr, false);
 }
 
 void PointTable::setPoint(int addr)
 {
-	set(addr, true);
+  set(addr, true);
 }
 
 bool PointTable::exists(int addr)
 {
-	return get(addr);
+  return get(addr);
 }
