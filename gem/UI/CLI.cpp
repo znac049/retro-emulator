@@ -1,4 +1,5 @@
 #include <stdio.h>		// 
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -7,6 +8,7 @@
 #include "../gem.h"
 #include "../Debug.h"
 #include "../Machines/Machine.h"
+#include "../CPUs/CPUState.h"
 
 const CLI::CommandEnt_t CLI::Commands[] = {
   {"q*uit",        QuitCmd},
@@ -26,7 +28,6 @@ const CLI::CommandEnt_t CLI::Commands[] = {
   {"db*ytes",      DumpBytesCmd},
   {"dw*ords",      DumpWordsCmd},
   {"ba*se",        BaseCmd},
-  {"dis*assemble", UnassembleCmd},
   {"un*assemble",  UnassembleCmd}
 };
 
@@ -37,6 +38,7 @@ CLI::CLI(Machine *m)
   isTty = isatty(f);
 
   machine = m;
+  radix = 16;
 }
 
 int CLI::compareCommand(char *str, char *command)
@@ -143,41 +145,6 @@ int CLI::makeArgs(char *line, char **argv, int maxArgs)
   return argc;
 }
 
-void CLI::handleLine(char *line)
-{
-  char *cmd = skipBlanks(line);
-  char *argv[10];
-  int argc;
-
-  argc = makeArgs(chomp(line), argv, 10);
-
-  printf("Broke line up into %d parts\n", argc);
-  for (int i=0; i<argc; i++) {
-    printf("  %d: '%s'\n", i, argv[i]);
-  }
-
-  if (argc> 0) {
-    int cmd = lookupCommand(argv[0]);
-
-    switch (cmd) {
-    case QuitCmd:
-      if (isTty) {
-	printf("Bye!\n");
-      }
-      running = false;
-      break;
-
-    case NoCmd:
-      printf("Unknown command: '%s'. Type 'help' for list of commands.\n", argv[0]);
-      break;
-
-    default:
-      printf("Unhandled command %d\n", cmd);
-      break;
-    }
-  }
-}
-
 int CLI::lookupCommand(char *cmdName)
 {
   printf("Looking for command '%s'\n", cmdName);
@@ -214,4 +181,108 @@ void CLI::go()
       handleLine(line);
     }
   }
+}
+
+void CLI::handleLine(char *line)
+{
+  char *cmd = skipBlanks(line);
+  char *argv[10];
+  int argc;
+
+  argc = makeArgs(chomp(line), argv, 10);
+
+  if (argc> 0) {
+    int cmd = lookupCommand(argv[0]);
+
+    switch (cmd) {
+    case QuitCmd:
+      if (isTty) {
+	printf("Bye!\n");
+      }
+      running = false;
+      break;
+
+    case HelpCmd:
+      doHelp();
+      break;
+
+    case BaseCmd:
+      doBaseCmd(argc-1, &argv[1]);
+      break;
+
+    case RegsCmd:
+      doRegsCmd(argc-1, &argv[1]);
+      break;
+
+    case ResetCmd:
+      doResetCmd(argc-1, &argv[1]);
+      break;
+
+    case NoCmd:
+      printf("Unknown command: '%s'. Type 'help' for list of commands.\n", argv[0]);
+      break;
+
+    default:
+      printf("Unhandled command %d\n", cmd);
+      break;
+    }
+  }
+}
+
+void CLI::doHelp()
+{
+  printf("Commands:\n");
+
+  for (int i=0; i<(sizeof(Commands) / sizeof(CommandEnt_t)); i++) {
+    printf("  %s\n", Commands[i].cmd);
+  }
+
+  printf("\n");
+}
+
+void CLI::doBaseCmd(int argc, char **argv)
+{
+  if (argc != 1) {
+    printf("usage: base <2|8|10|16|bin|oct|dec|hex>\n");
+    return;
+  }
+
+  if (strcasecmp(argv[0], "bin") == 0) {
+    radix = 2;
+  }
+  else if (strcasecmp(argv[0], "oct") == 0) {
+    radix = 8;
+  }
+  else if (strcasecmp(argv[0], "dec") == 0) {
+    radix = 10;
+  }
+  else if (strcasecmp(argv[0], "hex") == 0) {
+    radix = 16;
+  }
+  else {
+    int n = atoi(argv[0]);
+
+    if ((n==2) || (n==8) || (n==10) || (n==16)) {
+      radix = n;
+    }
+    else {
+      printf("unsupported radix '%s'\n", argv[0]);
+    }
+  }
+}
+
+void CLI::doRegsCmd(int argc, char **argv)
+{
+}
+
+void CLI::doResetCmd(int argc, char **argv)
+{
+  if (argc) {
+    printf("usage: reset\n");
+    return;
+  }
+
+  machine->getState()->reset();
+
+  printf("System reset.\nPC=$%04x\n\n", machine->getState()->getPC());
 }

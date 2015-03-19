@@ -7,13 +7,13 @@
 
 #include "MemoryDevice.h"
 
-MemoryDevice::MemoryDevice(int size_in_bytes, bool ro) : Device()
+MemoryDevice::MemoryDevice(int sizeInBytes, bool ro) : Device()
 {
   read_only = ro;
-  ram_size = size_in_bytes;
-  bytes = (byte *) malloc(ram_size);
+  setSize(sizeInBytes);
+  bytes = (byte *) malloc(sizeInBytes);
 
-  for (int i = 0; i < ram_size; i++) {
+  for (int i = 0; i < sizeInBytes; i++) {
     bytes[i] = 0x5a;
   }
 
@@ -28,26 +28,17 @@ MemoryDevice::MemoryDevice(int size_in_bytes, bool ro) : Device()
 MemoryDevice::~MemoryDevice()
 {
   free(bytes);
-  ram_size = 0;
 }
 
-byte MemoryDevice::peek(int addr)
+byte MemoryDevice::readByte(int addr)
 {
-  if ((addr < 0) || (addr >= ram_size)) {
-    throw "Address out of range in RAM Getter";
-  }
-
   return bytes[addr];
 }
 
-void MemoryDevice::poke(int addr, byte b)
+void MemoryDevice::writeByte(int addr, byte b)
 {
   if (read_only) {
     throw "Attempt to write to readonly memory";
-  }
-
-  if ((addr < 0) || (addr >= ram_size)) {
-    throw "Address out of range in RAM Setter";
   }
 
   bytes[addr] = b;
@@ -55,14 +46,9 @@ void MemoryDevice::poke(int addr, byte b)
 
 void MemoryDevice::_set(int addr, byte b)
 {
-  if ((addr < 0) || (addr >= ram_size)) {
+  if ((addr < 0) || (addr >= getSize())) {
     throw "Address out of range in RAM Setter";
   }
 
   bytes[addr] = b;
-}
-
-int MemoryDevice::getSize()
-{
-  return ram_size;
 }

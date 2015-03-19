@@ -29,6 +29,7 @@ class CLI
   bool isTty;
   Machine *machine;
   bool running;
+  int radix;
   
  protected:
   bool isBlank(char c);
@@ -40,6 +41,11 @@ class CLI
   void handleLine(char *line);
   int lookupCommand(char *cmdName);
   int compareCommand(char *str, char *command);
+
+  void doHelp();
+  void doBaseCmd(int argc, char **argv);
+  void doRegsCmd(int argc, char **argv);
+  void doResetCmd(int argc, char **argv);
 
  public:
   CLI(Machine *m);

@@ -34,7 +34,7 @@ gem: $(OBJS)
 	$(CXX) $(LDFLAGS) -o gem $(OBJS) $(LDLIBS) 
 
 clean:
-	$(RM) $(OBJS) build/ *~ gem
+	$(RM) $(OBJS) build/* *~ gem
 
 dist-clean: clean
 	$(RM) *~ .depend

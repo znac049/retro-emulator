@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../Debug.h"
 #include "CPUState.h"
 #include "../MemoryMap.h"
 
@@ -14,6 +15,8 @@ CPUState::CPUState(MemoryMap *mem) {
   instructionCycles = _instructionSizes;
   addressingModes = _addressingModes;
 
+  Debug::logf(10, "Memory map:\n");
+  memory->dump();
   reset();
 }
 

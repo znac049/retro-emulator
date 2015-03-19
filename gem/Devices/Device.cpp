@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "../gem.h"
+#include "../Debug.h"
 
 #include "Device.h"
 #include "DeviceListener.h"
@@ -34,10 +35,12 @@ byte Device::peek(int addr)
   byte res;
 
   if ((addr < 0) || (addr >= size)) {
-	char error[MAXSTR];
+    char error[MAXSTR];
 
-	snprintf(error, MAXSTR, "Address $%04x (%d) out of range in device '%s::poke'", addr, addr, getName());
-	throw error;
+    snprintf(error, MAXSTR, "Address $%04x (%d) out of range in device '%s::peek'", addr, addr, getName());
+    Debug::logf(1, "Error: %s\n", error);
+
+    throw error;
   }
 
   res = readByte(addr);
@@ -52,13 +55,15 @@ void Device::writeByte(int addr, byte b) {
 void Device::poke(int addr, byte b)
 {
   if ((addr < 0) || (addr >= size)) {
-	char error[MAXSTR];
+    char error[MAXSTR];
 
-	snprintf(error, MAXSTR, "Address $%04x (%d) out of range in device '%s::poke'", addr, addr, getName());
-	throw error;
+    snprintf(error, MAXSTR, "Address $%04x (%d) out of range in device '%s::poke'", addr, addr, getName());
+    Debug::logf(1, "Error: %s\n", error);
+
+    throw error;
   }
 
-  poke(addr, b);
+  writeByte(addr, b);
   fireWriteListener(addr, b);
 }
 

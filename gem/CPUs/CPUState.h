@@ -59,6 +59,9 @@ class CPUState {
   virtual int getAddressingMode();
   virtual int getInstructionSize();
   virtual int getInstructionCycles();
+
+  virtual int getPC() { return pc; };
+  virtual int getSP() { return sp; };
 };
 
 #endif

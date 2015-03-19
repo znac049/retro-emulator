@@ -6,6 +6,7 @@
 #include "../Debug.h"
 #include "../MemoryMap.h"
 #include "../CPUs/CPU.h"
+#include "../CPUs/CPUState.h"
 #include "../Devices/MemoryDevice.h"
 
 Machine::Machine()
@@ -31,6 +32,7 @@ void Machine::configureProcessor()
 {
   Debug::logf(10, "configureProcessor()\n");
   proc = new CPU(memory);
+  state = new CPUState(memory);
 }
 
 void Machine::setName(const char *newName)
