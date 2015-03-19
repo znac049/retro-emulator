@@ -1,4 +1,4 @@
-const char *State6502::_instructionNames[] = {
+const char *CPU6502::_instructionNames[] = {
   "BRK", "ORA",  NULL,  NULL,  NULL, "ORA", "ASL",  NULL,
   "PHP", "ORA", "ASL",  NULL,  NULL, "ORA", "ASL",  NULL,
   "BPL", "ORA",  NULL,  NULL,  NULL, "ORA", "ASL",  NULL,
@@ -33,7 +33,7 @@ const char *State6502::_instructionNames[] = {
   "SED", "SBC",  NULL,  NULL,  NULL, "SBC", "INC",  NULL
 };
 
-const int State6502::_instructionSizes[] = {
+const int CPU6502::_instructionSizes[] = {
   1, 2, 0, 0, 0, 2, 2, 0, 1, 2, 1, 0, 0, 3, 3, 0,
   2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0,
   3, 2, 0, 0, 2, 2, 2, 0, 1, 2, 1, 0, 3, 3, 3, 0,
@@ -52,7 +52,7 @@ const int State6502::_instructionSizes[] = {
   2, 2, 0, 0, 0, 2, 2, 0, 1, 3, 0, 0, 0, 3, 3, 0
 };
 
-const int State6502::_instructionCycles[] = {
+const int CPU6502::_instructionCycles[] = {
   7, 6, 0, 0, 0, 3, 5, 0, 3, 2, 2, 0, 0, 4, 6, 0,
   2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0,
   6, 6, 0, 0, 3, 3, 5, 0, 4, 2, 2, 0, 4, 4, 6, 0,
@@ -71,7 +71,7 @@ const int State6502::_instructionCycles[] = {
   2, 5, 0, 0, 0, 4, 6, 0, 2, 4, 0, 0, 0, 4, 7, 0
 };
 
-const int State6502::_addressingModes[] = {
+const int CPU6502::_addressingModes[] = {
   MODE_IMP, MODE_INX, MODE_NUL, MODE_NUL,   // 0x00-0x03
   MODE_NUL, MODE_ZPG, MODE_ZPG, MODE_NUL,   // 0x04-0x07
   MODE_IMP, MODE_IMM, MODE_ACC, MODE_NUL,   // 0x08-0x0b

@@ -7,7 +7,8 @@ SRCS=gem.cpp \
 	Devices/Device.cpp \
 	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
 	Machines/Machine.cpp \
-	CPUs/CPU.cpp CPUs/CPUState.cpp \
+	CPUs/CPU.cpp \
+	CPUs/CPU6502.cpp \
 	UI/CLI.cpp \
 	Misc/AddressHash.cpp Misc/PointTable.cpp
 

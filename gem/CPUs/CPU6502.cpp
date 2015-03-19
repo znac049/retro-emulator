@@ -3,31 +3,87 @@
 #include <time.h>
 
 #include "CPU6502.h"
-#include "State6502.h"
 #include "../MemoryMap.h"
+
+#include "6502.inst"
 
 CPU6502::CPU6502(MemoryMap *mem) : CPU(mem) {
   behaviour = NMOS_WITH_INDIRECT_JMP_BUG;
 
-  state = new State6502(memory);
+  instructionNames = _instructionNames;
+  instructionSizes = _instructionSizes;
+  instructionCycles = _instructionSizes;
+  addressingModes = _addressingModes;
+
+  reset();
 }
 
 CPU6502::~CPU6502() {
 }
 
+void CPU6502::reset()
+{
+  CPU::reset();
+
+  a = 0;
+  x = y = 0;
+
+  sp = 0xff;
+
+  pc = memory->peekw(RST_VECTOR_L);
+  ir = memory->peek(pc);
+
+  lastPc = 0;
+
+  instSize = 0;
+
+  opTrap = 0;
+  irqAsserted = nmiAsserted = false;
+
+  carryFlag = false;
+  negativeFlag = false;
+  zeroFlag = false;
+  irqDisableFlag = false;
+  decimalModeFlag = false;
+  breakFlag = false;
+  overflowFlag = false;
+
+  stepCounter = 0L;
+  running = false;
+}
+
+int CPU6502::load(int addr)
+{
+  lastPc = pc;
+  pc = addr;
+
+  ir = memory->peek(pc);
+  pc++;
+
+  opTrap = false;
+
+  instSize = getInstructionSize();
+  for (int i = 0; i < instSize-1; i++) {
+    args[i] = memory->peek(pc);
+    pc++;
+  }
+
+  return instSize;
+}
+
 void CPU6502::checkInterrupts()
 {
-  if (state->nmiAsserted) {
+  if (nmiAsserted) {
     handleNmi();
-  } else if (state->irqAsserted && !getIrqDisableFlag()) {
-    handleIrq(state->pc);
+  } else if (irqAsserted && !getIrqDisableFlag()) {
+    handleIrq(pc);
   }
 }
 
 void CPU6502::executeInstruction()
 {
-  irAddressMode = (state->ir >> 2) & 0x07;
-  irOpMode = state->ir & 0x03;
+  irAddressMode = (ir >> 2) & 0x07;
+  irOpMode = ir & 0x03;
 
   effectiveAddress = 0;
 
@@ -40,25 +96,25 @@ void CPU6502::executeInstruction()
     case 0: // #Immediate
       break;
     case 1: // Zero Page
-      effectiveAddress = state->args[0];
+      effectiveAddress = args[0];
       break;
     case 2: // Accumulator - ignored
       break;
     case 3: // Absolute
-      effectiveAddress = address(state->args[0], state->args[1]);
+      effectiveAddress = address(args[0], args[1]);
       break;
     case 5: // Zero Page,X / Zero Page,Y
-      if (state->ir == 0x96 || state->ir == 0xb6) {
-	effectiveAddress = zpyAddress(state->args[0]);
+      if (ir == 0x96 || ir == 0xb6) {
+	effectiveAddress = zpyAddress(args[0]);
       } else {
-	effectiveAddress = zpxAddress(state->args[0]);
+	effectiveAddress = zpxAddress(args[0]);
       }
       break;
     case 7: // Absolute,X / Absolute,Y
-      if (state->ir == 0xbe) {
-	effectiveAddress = yAddress(state->args[0], state->args[1]);
+      if (ir == 0xbe) {
+	effectiveAddress = yAddress(args[0], args[1]);
       } else {
-	effectiveAddress = xAddress(state->args[0], state->args[1]);
+	effectiveAddress = xAddress(args[0], args[1]);
       }
       break;
     }
@@ -66,68 +122,68 @@ void CPU6502::executeInstruction()
   case 1:
     switch (irAddressMode) {
     case 0: // (Zero Page,X)
-      tmp = (state->args[0] + state->x) & 0xff;
+      tmp = (args[0] + x) & 0xff;
       effectiveAddress = address(memory->peek(tmp), memory->peek(tmp + 1));
       break;
     case 1: // Zero Page
-      effectiveAddress = state->args[0];
+      effectiveAddress = args[0];
       break;
     case 2: // #Immediate
       effectiveAddress = -1;
       break;
     case 3: // Absolute
-      effectiveAddress = address(state->args[0], state->args[1]);
+      effectiveAddress = address(args[0], args[1]);
       break;
     case 4: // (Zero Page),Y
-      tmp = address(memory->peek(state->args[0]),
-		    memory->peek((state->args[0] + 1) & 0xff));
-      effectiveAddress = (tmp + state->y) & 0xffff;
+      tmp = address(memory->peek(args[0]),
+		    memory->peek((args[0] + 1) & 0xff));
+      effectiveAddress = (tmp + y) & 0xffff;
       break;
     case 5: // Zero Page,X
-      effectiveAddress = zpxAddress(state->args[0]);
+      effectiveAddress = zpxAddress(args[0]);
       break;
     case 6: // Absolute, Y
-      effectiveAddress = yAddress(state->args[0], state->args[1]);
+      effectiveAddress = yAddress(args[0], args[1]);
       break;
     case 7: // Absolute, X
-      effectiveAddress = xAddress(state->args[0], state->args[1]);
+      effectiveAddress = xAddress(args[0], args[1]);
       break;
     }
     break;
   }
 
   // Execute
-  switch (state->ir) {
+  switch (ir) {
 
     /** Single Byte Instructions; Implied and Relative **/
   case 0x00: // BRK - Force Interrupt - Implied
     if (!getIrqDisableFlag()) {
-      handleIrq(state->pc + 1);
+      handleIrq(pc + 1);
     }
     break;
   case 0x08: // PHP - Push Processor Status - Implied
     // Break flag is always set in the stack value.
-    stackPush(state->getStatusFlag() | 0x10);
+    stackPush(getStatusFlag() | 0x10);
     break;
   case 0x10: // BPL - Branch if Positive - Relative
     if (!getNegativeFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0x18: // CLC - Clear Carry Flag - Implied
     clearCarryFlag();
     break;
   case 0x20: // JSR - Jump to Subroutine - Implied
-    stackPush((state->pc - 1 >> 8) & 0xff); // PC high byte
-    stackPush(state->pc - 1 & 0xff);        // PC low byte
-    state->pc = address(state->args[0], state->args[1]);
+    stackPush((pc - 1 >> 8) & 0xff); // PC high byte
+    stackPush(pc - 1 & 0xff);        // PC low byte
+    pc = address(args[0], args[1]);
     break;
   case 0x28: // PLP - Pull Processor Status - Implied
     setProcessorStatus(stackPop());
     break;
   case 0x30: // BMI - Branch if Minus - Relative
     if (getNegativeFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0x38: // SEC - Set Carry Flag - Implied
@@ -140,11 +196,11 @@ void CPU6502::executeInstruction()
     setProgramCounter(address(lo, hi));
     break;
   case 0x48: // PHA - Push Accumulator - Implied
-    stackPush(state->a);
+    stackPush(a);
     break;
   case 0x50: // BVC - Branch if Overflow Clear - Relative
     if (!getOverflowFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0x58: // CLI - Clear Interrupt Disable - Implied
@@ -156,83 +212,83 @@ void CPU6502::executeInstruction()
     setProgramCounter((address(lo, hi) + 1) & 0xffff);
     break;
   case 0x68: // PLA - Pull Accumulator - Implied
-    state->a = stackPop();
-    setArithmeticFlags(state->a);
+    a = stackPop();
+    setArithmeticFlags(a);
     break;
   case 0x70: // BVS - Branch if Overflow Set - Relative
     if (getOverflowFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0x78: // SEI - Set Interrupt Disable - Implied
     setIrqDisableFlag();
     break;
   case 0x88: // DEY - Decrement Y Register - Implied
-    state->y = --state->y & 0xff;
-    setArithmeticFlags(state->y);
+    y = --y & 0xff;
+    setArithmeticFlags(y);
     break;
   case 0x8a: // TXA - Transfer X to Accumulator - Implied
-    state->a = state->x;
-    setArithmeticFlags(state->a);
+    a = x;
+    setArithmeticFlags(a);
     break;
   case 0x90: // BCC - Branch if Carry Clear - Relative
     if (!getCarryFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0x98: // TYA - Transfer Y to Accumulator - Implied
-    state->a = state->y;
-    setArithmeticFlags(state->a);
+    a = y;
+    setArithmeticFlags(a);
     break;
   case 0x9a: // TXS - Transfer X to Stack Pointer - Implied
-    setStackPointer(state->x);
+    setStackPointer(x);
     break;
   case 0xa8: // TAY - Transfer Accumulator to Y - Implied
-    state->y = state->a;
-    setArithmeticFlags(state->y);
+    y = a;
+    setArithmeticFlags(y);
     break;
   case 0xaa: // TAX - Transfer Accumulator to X - Implied
-    state->x = state->a;
-    setArithmeticFlags(state->x);
+    x = a;
+    setArithmeticFlags(x);
     break;
   case 0xb0: // BCS - Branch if Carry Set - Relative
     if (getCarryFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0xb8: // CLV - Clear Overflow Flag - Implied
     clearOverflowFlag();
     break;
   case 0xba: // TSX - Transfer Stack Pointer to X - Implied
-    state->x = getStackPointer();
-    setArithmeticFlags(state->x);
+    x = getStackPointer();
+    setArithmeticFlags(x);
     break;
   case 0xc8: // INY - Increment Y Register - Implied
-    state->y = ++state->y & 0xff;
-    setArithmeticFlags(state->y);
+    y = ++y & 0xff;
+    setArithmeticFlags(y);
     break;
   case 0xca: // DEX - Decrement X Register - Implied
-    state->x = --state->x & 0xff;
-    setArithmeticFlags(state->x);
+    x = --x & 0xff;
+    setArithmeticFlags(x);
     break;
   case 0xd0: // BNE - Branch if Not Equal to Zero - Relative
     if (!getZeroFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0xd8: // CLD - Clear Decimal Mode - Implied
     clearDecimalModeFlag();
     break;
   case 0xe8: // INX - Increment X Register - Implied
-    state->x = ++state->x & 0xff;
-    setArithmeticFlags(state->x);
+    x = ++x & 0xff;
+    setArithmeticFlags(x);
     break;
   case 0xea: // NOP
     // Do nothing.
     break;
   case 0xf0: // BEQ - Branch if Equal to Zero - Relative
     if (getZeroFlag()) {
-      state->pc = relAddress(state->args[0]);
+      pc = relAddress(args[0]);
     }
     break;
   case 0xf8: // SED - Set Decimal Flag - Implied
@@ -241,20 +297,20 @@ void CPU6502::executeInstruction()
 
     /** JMP *****************************************************************/
   case 0x4c: // JMP - Absolute
-    state->pc = address(state->args[0], state->args[1]);
+    pc = address(args[0], args[1]);
     break;
   case 0x6c: // JMP - Indirect
-    lo = address(state->args[0], state->args[1]); // Address of low byte
+    lo = address(args[0], args[1]); // Address of low byte
 
-    if (state->args[0] == 0xff &&
+    if (args[0] == 0xff &&
 	(behaviour == NMOS_WITH_INDIRECT_JMP_BUG ||
 	 behaviour == NMOS_WITH_ROR_BUG)) {
-      hi = address(0x00, state->args[1]);
+      hi = address(0x00, args[1]);
     } else {
       hi = lo + 1;
     }
 
-    state->pc = address(memory->peek(lo), memory->peek(hi));
+    pc = address(memory->peek(lo), memory->peek(hi));
     /* TODO: For accuracy, allow a flag to enable broken behavior of early 6502s:
      *
      * "An original 6502 has does not correctly fetch the target
@@ -271,8 +327,8 @@ void CPU6502::executeInstruction()
 
     /** ORA - Logical Inclusive Or ******************************************/
   case 0x09: // #Immediate
-    state->a |= state->args[0];
-    setArithmeticFlags(state->a);
+    a |= args[0];
+    setArithmeticFlags(a);
     break;
   case 0x01: // (Zero Page,X)
   case 0x05: // Zero Page
@@ -281,15 +337,15 @@ void CPU6502::executeInstruction()
   case 0x15: // Zero Page,X
   case 0x19: // Absolute,Y
   case 0x1d: // Absolute,X
-    state->a |= memory->peek(effectiveAddress);
-    setArithmeticFlags(state->a);
+    a |= memory->peek(effectiveAddress);
+    setArithmeticFlags(a);
     break;
 
 
     /** ASL - Arithmetic Shift Left *****************************************/
   case 0x0a: // Accumulator
-    state->a = asl(state->a);
-    setArithmeticFlags(state->a);
+    a = asl(a);
+    setArithmeticFlags(a);
     break;
   case 0x06: // Zero Page
   case 0x0e: // Absolute
@@ -305,7 +361,7 @@ void CPU6502::executeInstruction()
   case 0x24: // Zero Page
   case 0x2c: // Absolute
     tmp = memory->peek(effectiveAddress);
-    setZeroFlag((state->a & tmp) == 0);
+    setZeroFlag((a & tmp) == 0);
     setNegativeFlag((tmp & 0x80) != 0);
     setOverflowFlag((tmp & 0x40) != 0);
     break;
@@ -313,8 +369,8 @@ void CPU6502::executeInstruction()
 
     /** AND - Logical AND ***************************************************/
   case 0x29: // #Immediate
-    state->a &= state->args[0];
-    setArithmeticFlags(state->a);
+    a &= args[0];
+    setArithmeticFlags(a);
     break;
   case 0x21: // (Zero Page,X)
   case 0x25: // Zero Page
@@ -323,15 +379,15 @@ void CPU6502::executeInstruction()
   case 0x35: // Zero Page,X
   case 0x39: // Absolute,Y
   case 0x3d: // Absolute,X
-    state->a &= memory->peek(effectiveAddress);
-    setArithmeticFlags(state->a);
+    a &= memory->peek(effectiveAddress);
+    setArithmeticFlags(a);
     break;
 
 
     /** ROL - Rotate Left ***************************************************/
   case 0x2a: // Accumulator
-    state->a = rol(state->a);
-    setArithmeticFlags(state->a);
+    a = rol(a);
+    setArithmeticFlags(a);
     break;
   case 0x26: // Zero Page
   case 0x2e: // Absolute
@@ -345,8 +401,8 @@ void CPU6502::executeInstruction()
 
     /** EOR - Exclusive OR **************************************************/
   case 0x49: // #Immediate
-    state->a ^= state->args[0];
-    setArithmeticFlags(state->a);
+    a ^= args[0];
+    setArithmeticFlags(a);
     break;
   case 0x41: // (Zero Page,X)
   case 0x45: // Zero Page
@@ -355,15 +411,15 @@ void CPU6502::executeInstruction()
   case 0x55: // Zero Page,X
   case 0x59: // Absolute,Y
   case 0x5d: // Absolute,X
-    state->a ^= memory->peek(effectiveAddress);
-    setArithmeticFlags(state->a);
+    a ^= memory->peek(effectiveAddress);
+    setArithmeticFlags(a);
     break;
 
 
     /** LSR - Logical Shift Right *******************************************/
   case 0x4a: // Accumulator
-    state->a = lsr(state->a);
-    setArithmeticFlags(state->a);
+    a = lsr(a);
+    setArithmeticFlags(a);
     break;
   case 0x46: // Zero Page
   case 0x4e: // Absolute
@@ -377,10 +433,10 @@ void CPU6502::executeInstruction()
 
     /** ADC - Add with Carry ************************************************/
   case 0x69: // #Immediate
-    if (state->decimalModeFlag) {
-      state->a = adcDecimal(state->a, state->args[0]);
+    if (decimalModeFlag) {
+      a = adcDecimal(a, args[0]);
     } else {
-      state->a = adc(state->a, state->args[0]);
+      a = adc(a, args[0]);
     }
     break;
   case 0x61: // (Zero Page,X)
@@ -390,18 +446,18 @@ void CPU6502::executeInstruction()
   case 0x75: // Zero Page,X
   case 0x79: // Absolute,Y
   case 0x7d: // Absolute,X
-    if (state->decimalModeFlag) {
-      state->a = adcDecimal(state->a, memory->peek(effectiveAddress));
+    if (decimalModeFlag) {
+      a = adcDecimal(a, memory->peek(effectiveAddress));
     } else {
-      state->a = adc(state->a, memory->peek(effectiveAddress));
+      a = adc(a, memory->peek(effectiveAddress));
     }
     break;
 
 
     /** ROR - Rotate Right **************************************************/
   case 0x6a: // Accumulator
-    state->a = ror(state->a);
-    setArithmeticFlags(state->a);
+    a = ror(a);
+    setArithmeticFlags(a);
     break;
   case 0x66: // Zero Page
   case 0x6e: // Absolute
@@ -421,7 +477,7 @@ void CPU6502::executeInstruction()
   case 0x95: // Zero Page,X
   case 0x99: // Absolute,Y
   case 0x9d: // Absolute,X
-    memory->poke(effectiveAddress, state->a);
+    memory->poke(effectiveAddress, a);
     break;
 
 
@@ -429,7 +485,7 @@ void CPU6502::executeInstruction()
   case 0x84: // Zero Page
   case 0x8c: // Absolute
   case 0x94: // Zero Page,X
-    memory->poke(effectiveAddress, state->y);
+    memory->poke(effectiveAddress, y);
     break;
 
 
@@ -437,42 +493,42 @@ void CPU6502::executeInstruction()
   case 0x86: // Zero Page
   case 0x8e: // Absolute
   case 0x96: // Zero Page,Y
-    memory->poke(effectiveAddress, state->x);
+    memory->poke(effectiveAddress, x);
     break;
 
 
     /** LDY - Load Y Register ***********************************************/
   case 0xa0: // #Immediate
-    state->y = state->args[0];
-    setArithmeticFlags(state->y);
+    y = args[0];
+    setArithmeticFlags(y);
     break;
   case 0xa4: // Zero Page
   case 0xac: // Absolute
   case 0xb4: // Zero Page,X
   case 0xbc: // Absolute,X
-    state->y = memory->peek(effectiveAddress);
-    setArithmeticFlags(state->y);
+    y = memory->peek(effectiveAddress);
+    setArithmeticFlags(y);
     break;
 
 
     /** LDX - Load X Register ***********************************************/
   case 0xa2: // #Immediate
-    state->x = state->args[0];
-    setArithmeticFlags(state->x);
+    x = args[0];
+    setArithmeticFlags(x);
     break;
   case 0xa6: // Zero Page
   case 0xae: // Absolute
   case 0xb6: // Zero Page,Y
   case 0xbe: // Absolute,Y
-    state->x = memory->peek(effectiveAddress);
-    setArithmeticFlags(state->x);
+    x = memory->peek(effectiveAddress);
+    setArithmeticFlags(x);
     break;
 
 
     /** LDA - Load Accumulator **********************************************/
   case 0xa9: // #Immediate
-    state->a = state->args[0];
-    setArithmeticFlags(state->a);
+    a = args[0];
+    setArithmeticFlags(a);
     break;
   case 0xa1: // (Zero Page,X)
   case 0xa5: // Zero Page
@@ -481,24 +537,24 @@ void CPU6502::executeInstruction()
   case 0xb5: // Zero Page,X
   case 0xb9: // Absolute,Y
   case 0xbd: // Absolute,X
-    state->a = memory->peek(effectiveAddress);
-    setArithmeticFlags(state->a);
+    a = memory->peek(effectiveAddress);
+    setArithmeticFlags(a);
     break;
 
 
     /** CPY - Compare Y Register ********************************************/
   case 0xc0: // #Immediate
-    cmp(state->y, state->args[0]);
+    cmp(y, args[0]);
     break;
   case 0xc4: // Zero Page
   case 0xcc: // Absolute
-    cmp(state->y, memory->peek(effectiveAddress));
+    cmp(y, memory->peek(effectiveAddress));
     break;
 
 
     /** CMP - Compare Accumulator *******************************************/
   case 0xc9: // #Immediate
-    cmp(state->a, state->args[0]);
+    cmp(a, args[0]);
     break;
   case 0xc1: // (Zero Page,X)
   case 0xc5: // Zero Page
@@ -507,7 +563,7 @@ void CPU6502::executeInstruction()
   case 0xd5: // Zero Page,X
   case 0xd9: // Absolute,Y
   case 0xdd: // Absolute,X
-    cmp(state->a, memory->peek(effectiveAddress));
+    cmp(a, memory->peek(effectiveAddress));
     break;
 
 
@@ -524,20 +580,20 @@ void CPU6502::executeInstruction()
 
     /** CPX - Compare X Register ********************************************/
   case 0xe0: // #Immediate
-    cmp(state->x, state->args[0]);
+    cmp(x, args[0]);
     break;
   case 0xe4: // Zero Page
   case 0xec: // Absolute
-    cmp(state->x, memory->peek(effectiveAddress));
+    cmp(x, memory->peek(effectiveAddress));
     break;
 
 
     /** SBC - Subtract with Carry (Borrow) **********************************/
   case 0xe9: // #Immediate
-    if (state->decimalModeFlag) {
-      state->a = sbcDecimal(state->a, state->args[0]);
+    if (decimalModeFlag) {
+      a = sbcDecimal(a, args[0]);
     } else {
-      state->a = sbc(state->a, state->args[0]);
+      a = sbc(a, args[0]);
     }
     break;
   case 0xe1: // (Zero Page,X)
@@ -547,10 +603,10 @@ void CPU6502::executeInstruction()
   case 0xf5: // Zero Page,X
   case 0xf9: // Absolute,Y
   case 0xfd: // Absolute,X
-    if (state->decimalModeFlag) {
-      state->a = sbcDecimal(state->a, memory->peek(effectiveAddress));
+    if (decimalModeFlag) {
+      a = sbcDecimal(a, memory->peek(effectiveAddress));
     } else {
-      state->a = sbc(state->a, memory->peek(effectiveAddress));
+      a = sbc(a, memory->peek(effectiveAddress));
     }
     break;
 
@@ -573,19 +629,15 @@ void CPU6502::executeInstruction()
   }
 }
 
-void CPU6502::step()
+void CPU6502::handleIrq(int returnPc)
 {
-}
-
-void CPU6502::handleIrq(word returnPc)
-{
-  handleInterrupt(returnPc, State6502::IRQ_VECTOR_L, State6502::IRQ_VECTOR_H);
+  handleInterrupt(returnPc, IRQ_VECTOR_L, IRQ_VECTOR_H);
   clearIrq();
 }
 
 void CPU6502::handleNmi()
 {
-  handleInterrupt(state->pc, State6502::NMI_VECTOR_L, State6502::NMI_VECTOR_H);
+  handleInterrupt(pc, NMI_VECTOR_L, NMI_VECTOR_H);
   clearNmi();
 }
 
@@ -602,13 +654,13 @@ void CPU6502::handleInterrupt(int returnPc, int vectorLow, int vectorHigh)
   // Push program counter + 1 onto the stack
   stackPush((returnPc >> 8) & 0xff); // PC high byte
   stackPush(returnPc & 0xff);        // PC low byte
-  stackPush(state->getStatusFlag());
+  stackPush(getStatusFlag());
 
   // Set the Interrupt Disabled flag.  RTI will clear it.
   setIrqDisableFlag();
 
   // Load interrupt vector address into PC
-  state->pc = memory->peekw(vectorLow);
+  pc = memory->peekw(vectorLow);
 }
 
 /**
@@ -626,7 +678,7 @@ int CPU6502::adc(int acc, int operand)
   int carry6 = (operand & 0x7f) + (acc & 0x7f) + getCarryBit();
 
   setCarryFlag((result & 0x100) != 0);
-  setOverflowFlag(state->carryFlag ^ ((carry6 & 0x80) != 0));
+  setOverflowFlag(carryFlag ^ ((carry6 & 0x80) != 0));
 
   result &= 0xff;
   setArithmeticFlags(result);
@@ -680,7 +732,7 @@ int CPU6502::sbc(int acc, int operand) {
 int CPU6502::sbcDecimal(int acc, int operand) {
   int l, h, result;
 
-  l = (acc & 0x0f) - (operand & 0x0f) - (state->carryFlag ? 0 : 1);
+  l = (acc & 0x0f) - (operand & 0x0f) - (carryFlag ? 0 : 1);
   if ((l & 0x10) != 0) {
     l -= 6;
   }
@@ -716,8 +768,8 @@ void CPU6502::cmp(int reg, int operand) {
  * register operand.
  */
 void CPU6502::setArithmeticFlags(int reg) {
-  state->zeroFlag = (reg == 0);
-  state->negativeFlag = (reg & 0x80) != 0;
+  zeroFlag = (reg == 0);
+  negativeFlag = (reg & 0x80) != 0;
 }
 
 /**
@@ -769,187 +821,187 @@ int CPU6502::ror(int m) {
 
 bool CPU6502::getBreakFlag()
 {
-  return state->breakFlag;
+  return breakFlag;
 }
 
 void CPU6502::setBreakFlag()
 {
-  state->breakFlag = true;
+  breakFlag = true;
 }
 
 void CPU6502::setBreakFlag(bool b)
 {
-  state->breakFlag = b;
+  breakFlag = b;
 }
 
 void CPU6502::clearBreakFlag()
 {
-  state->breakFlag = false;
+  breakFlag = false;
 }
 
 bool CPU6502::getOverflowFlag()
 {
-  return state->overflowFlag;
+  return overflowFlag;
 }
 
 void CPU6502::setOverflowFlag()
 {
-  state->overflowFlag = true;
+  overflowFlag = true;
 }
 
 void CPU6502::setOverflowFlag(bool b)
 {
-  state->overflowFlag = b;
+  overflowFlag = b;
 }
 
 void CPU6502::clearOverflowFlag()
 {
-  state->overflowFlag = false;
+  overflowFlag = false;
 }
 
 bool CPU6502::getNegativeFlag()
 {
-  return state->negativeFlag;
+  return negativeFlag;
 }
 
 void CPU6502::setNegativeFlag()
 {
-  state->negativeFlag = true;
+  negativeFlag = true;
 }
 
 void CPU6502::setNegativeFlag(bool b)
 {
-  state->negativeFlag = b;
+  negativeFlag = b;
 }
 
 void CPU6502::clearNegativeFlag()
 {
-  state->negativeFlag = false;
+  negativeFlag = false;
 }
 
 bool CPU6502::getCarryFlag()
 {
-  return state->carryFlag;
+  return carryFlag;
 }
 
 bool CPU6502::getCarryBit()
 {
-  return state->carryFlag ? 1 : 0;
+  return carryFlag ? 1 : 0;
 }
 
 void CPU6502::setCarryFlag()
 {
-  state->carryFlag = true;
+  carryFlag = true;
 }
 
 void CPU6502::setCarryFlag(bool b)
 {
-  state->carryFlag = b;
+  carryFlag = b;
 }
 
 void CPU6502::clearCarryFlag()
 {
-  state->carryFlag = false;
+  carryFlag = false;
 }
 
 bool CPU6502::getZeroFlag()
 {
-  return state->zeroFlag;
+  return zeroFlag;
 }
 
 void CPU6502::setZeroFlag()
 {
-  state->zeroFlag = true;
+  zeroFlag = true;
 }
 
 void CPU6502::setZeroFlag(bool b)
 {
-  state->zeroFlag = b;
+  zeroFlag = b;
 }
 
 void CPU6502::clearZeroFlag()
 {
-  state->zeroFlag = false;
+  zeroFlag = false;
 }
 
 bool CPU6502::getIrqDisableFlag()
 {
-  return state->irqDisableFlag;
+  return irqDisableFlag;
 }
 
 void CPU6502::setIrqDisableFlag()
 {
-  state->irqDisableFlag = true;
+  irqDisableFlag = true;
 }
 
 void CPU6502::setIrqDisableFlag(bool b)
 {
-  state->irqDisableFlag = b;
+  irqDisableFlag = b;
 }
 
 void CPU6502::clearIrqDisableFlag()
 {
-  state->irqDisableFlag = false;
+  irqDisableFlag = false;
 }
 
 
 bool CPU6502::getDecimalModeFlag()
 {
-  return state->decimalModeFlag;
+  return decimalModeFlag;
 }
 
 void CPU6502::setDecimalModeFlag()
 {
-  state->decimalModeFlag = true;
+  decimalModeFlag = true;
 }
 
 void CPU6502::setDecimalModeFlag(bool b)
 {
-  state->decimalModeFlag = b;
+  decimalModeFlag = b;
 }
 
 void CPU6502::clearDecimalModeFlag()
 {
-  state->decimalModeFlag = false;
+  decimalModeFlag = false;
 }
 
 int CPU6502::getProcessorStatus()
 {
-  return state->getStatusFlag();
+  return getStatusFlag();
 }
 
 void CPU6502::setProcessorStatus(int value) {
-  if ((value & State6502::P_CARRY) != 0)
+  if ((value & P_CARRY) != 0)
     setCarryFlag();
   else
     clearCarryFlag();
 
-  if ((value & State6502::P_ZERO) != 0)
+  if ((value & P_ZERO) != 0)
     setZeroFlag();
   else
     clearZeroFlag();
 
-  if ((value & State6502::P_IRQ_DISABLE) != 0)
+  if ((value & P_IRQ_DISABLE) != 0)
     setIrqDisableFlag();
   else
     clearIrqDisableFlag();
 
-  if ((value & State6502::P_DECIMAL) != 0)
+  if ((value & P_DECIMAL) != 0)
     setDecimalModeFlag();
   else
     clearDecimalModeFlag();
 
-  if ((value & State6502::P_BREAK) != 0)
+  if ((value & P_BREAK) != 0)
     setBreakFlag();
   else
     clearBreakFlag();
 
-  if ((value & State6502::P_OVERFLOW) != 0)
+  if ((value & P_OVERFLOW) != 0)
     setOverflowFlag();
   else
     clearOverflowFlag();
 
-  if ((value & State6502::P_NEGATIVE) != 0)
+  if ((value & P_NEGATIVE) != 0)
     setNegativeFlag();
   else
     clearNegativeFlag();
@@ -957,36 +1009,36 @@ void CPU6502::setProcessorStatus(int value) {
 
 int CPU6502::getProgramCounter()
 {
-  return state->pc;
+  return pc;
 }
 
 void CPU6502::setProgramCounter(int addr)
 {
-  state->pc = addr;
+  pc = addr;
 }
 
 int CPU6502::getStackPointer()
 {
-  return state->sp;
+  return sp;
 }
 
 void CPU6502::setStackPointer(int offset)
 {
-  state->sp = offset;
+  sp = offset;
 }
 
 /**
  * Set the illegal instruction trap.
  */
 void CPU6502::setOpTrap() {
-  state->opTrap = true;
+  opTrap = true;
 }
 
 /**
  * Clear the illegal instruction trap.
  */
 void CPU6502::clearOpTrap() {
-  state->opTrap = false;
+  opTrap = false;
 }
 
 
@@ -997,12 +1049,12 @@ void CPU6502::clearOpTrap() {
  */
 void CPU6502::stackPush(int data)
 {
-  memory->poke(0x100 + state->sp, data);
+  memory->poke(0x100 + sp, data);
 
-  if (state->sp == 0) {
-    state->sp = 0xff;
+  if (sp == 0) {
+    sp = 0xff;
   } else {
-    state->sp--;
+    sp--;
   }
 }
 
@@ -1014,13 +1066,13 @@ void CPU6502::stackPush(int data)
  */
 int CPU6502::stackPop()
 {
-  if (state->sp == 0xff) {
-    state->sp = 0x00;
+  if (sp == 0xff) {
+    sp = 0x00;
   } else {
-    state->sp++;
+    sp++;
   }
 
-  return memory->peek(0x100 + state->sp);
+  return memory->peek(0x100 + sp);
 }
 
 /**
@@ -1028,7 +1080,7 @@ int CPU6502::stackPop()
  */
 int CPU6502::stackPeek()
 {
-  int sp = state->sp;
+  int sp = sp;
 
   if (sp == 0xff) {
     sp = 0x00;
@@ -1036,35 +1088,35 @@ int CPU6502::stackPeek()
     sp++;
   }
 
-  return memory->peek(0x100 + state->sp);
+  return memory->peek(0x100 + sp);
 }
 
 /**
  * Simulate transition from logic-high to logic-low on the INT line.
  */
 void CPU6502::assertIrq() {
-  state->irqAsserted = true;
+  irqAsserted = true;
 }
 
 /**
  * Simulate transition from logic-low to logic-high of the INT line.
  */
 void CPU6502::clearIrq() {
-  state->irqAsserted = false;
+  irqAsserted = false;
 }
 
 /**
  * Simulate transition from logic-high to logic-low on the NMI line.
  */
 void CPU6502::assertNmi() {
-  state->nmiAsserted = true;
+  nmiAsserted = true;
 }
 
 /**
  * Simulate transition from logic-low to logic-high of the NMI line.
  */
 void CPU6502::clearNmi() {
-  state->nmiAsserted = false;
+  nmiAsserted = false;
 }
 
 /**
@@ -1081,7 +1133,7 @@ int CPU6502::address(int lowByte, int hiByte)
  */
 int CPU6502::xAddress(int lowByte, int hiByte)
 {
-  return (address(lowByte, hiByte) + state->x) & 0xffff;
+  return (address(lowByte, hiByte) + x) & 0xffff;
 }
 
 /**
@@ -1090,7 +1142,7 @@ int CPU6502::xAddress(int lowByte, int hiByte)
  */
 int CPU6502::yAddress(int lowByte, int hiByte)
 {
-  return (address(lowByte, hiByte) + state->y) & 0xffff;
+  return (address(lowByte, hiByte) + y) & 0xffff;
 }
 
 /**
@@ -1098,7 +1150,7 @@ int CPU6502::yAddress(int lowByte, int hiByte)
  */
 int CPU6502::zpxAddress(int zp)
 {
-  return (zp + state->x) & 0xff;
+  return (zp + x) & 0xff;
 }
 
 /**
@@ -1106,7 +1158,7 @@ int CPU6502::zpxAddress(int zp)
  */
 int CPU6502::relAddress(byte offset)
 {
-  return (state->pc + (signed char)offset) & 0xffff;
+  return (pc + (signed char)offset) & 0xffff;
 }
 
 /**
@@ -1114,7 +1166,7 @@ int CPU6502::relAddress(byte offset)
  */
 int CPU6502::zpyAddress(int zp)
 {
-  return (zp + state->y) & 0xff;
+  return (zp + y) & 0xff;
 }
 
 void CPU6502::summary()
@@ -1122,16 +1174,12 @@ void CPU6502::summary()
   char flags[64];
   char src[512];
 
-  state->disassembleOp(src, sizeof(src));
-  printf("$%04x: %-20s ", state->lastPc, src);
+  disassembleOp(src, sizeof(src));
+  printf("$%04x: %-20s ", lastPc, src);
 
-  state->getStatusFlagAsString(flags, sizeof(flags));
+  getStatusFlagAsString(flags, sizeof(flags));
   printf("PC: $%04x  A:$%02x X:$%02x Y:$%02x SP:$%02x Flags: %s\n",
-	 state->pc, state->a, state->x, state->y, state->sp, flags);
-}
-
-State6502 *CPU6502::getState() {
-  return state;
+	 pc, a, x, y, sp, flags);
 }
 
 MemoryMap *CPU6502::getMemory() {
@@ -1143,4 +1191,132 @@ int CPU6502::disassemble(int addr, char*str, int len)
   strncpy(str, "???", len);
 
   return 1;
+}
+
+byte CPU6502::getStatusFlag()
+{
+  byte status = 0x20; /* Bit 5 is always set */
+
+  if (carryFlag) {
+    status |= P_CARRY;
+  }
+
+  if (zeroFlag) {
+    status |= P_ZERO;
+  }
+
+  if (irqDisableFlag) {
+    status |= P_IRQ_DISABLE;
+  }
+
+  if (decimalModeFlag) {
+    status |= P_DECIMAL;
+  }
+
+  if (breakFlag) {
+    status |= P_BREAK;
+  }
+
+  if (overflowFlag) {
+    status |= P_OVERFLOW;
+  }
+
+  if (negativeFlag) {
+    status |= P_NEGATIVE;
+  }
+
+  return status;
+}
+
+void CPU6502::getStatusFlagAsString(char *str, int len)
+{
+  snprintf(str, len, "[%c%c%c%c%c%c%c%c]",
+	   negativeFlag?'N':'n',
+	   overflowFlag?'V':'v',
+	   '-',
+	   breakFlag?'B':'b',
+	   decimalModeFlag?'D':'d',
+	   irqDisableFlag?'I':'i',
+	   zeroFlag?'Z':'z',
+	   carryFlag?'C':'c');
+}
+
+void CPU6502::disassembleOp(char *str, int len)
+{
+  const char *mnemonic = getInstructionName();
+  char address[256];
+
+  if (mnemonic == NULL) {
+    strncpy(str, "???", len);
+
+    return;
+  }
+
+  switch (getAddressingMode()) {
+  case MODE_ABS:
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s %s", mnemonic, address);
+    break;
+
+  case MODE_ABX:
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s %s,X", mnemonic, address);
+    break;
+
+  case MODE_ABY:
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s %s,Y", mnemonic, address);
+    break;
+
+  case MODE_IMM:
+    snprintf(str, len, "%s #$%02x", mnemonic, args[0]);
+    break;
+
+  case MODE_IND:
+    memory->getAddressName(address, sizeof(address), argsw());
+    snprintf(str, len, "%s (%s)", mnemonic, address);
+    break;
+
+  case MODE_INX:
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s (%s,X)", mnemonic, address);
+    break;
+
+  case MODE_INY:
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s (%s),Y", mnemonic, address);
+    break;
+
+  case MODE_REL:
+    memory->getAddressName(address, sizeof(address), pc + (signed char)args[0]);
+    snprintf(str, len, "%s %s", mnemonic, address);
+    break;
+
+  case MODE_ZPG:
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s %s", mnemonic, address);
+    break;
+
+  case MODE_ZPX:
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s %s,X", mnemonic, address);
+    break;
+
+  case MODE_ZPY:
+    memory->getAddressName(address, sizeof(address), args[0]);
+    snprintf(str, len, "%s %s,Y", mnemonic, address);
+    break;
+
+  case MODE_IMP:
+    snprintf(str, len, "%s", mnemonic);
+    break;
+
+  case MODE_ACC:
+    snprintf(str, len, "%s", mnemonic);
+    break;
+
+  default:
+    snprintf(str, len, "!!!! IR=$%02x mode=%d", ir, getAddressingMode());
+    break;
+  }
 }

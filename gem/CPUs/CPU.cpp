@@ -5,6 +5,8 @@
 #include "../Timer.h"
 #include "../Debug.h"
 
+#include "CPU.inst"
+
 CPU::CPU(MemoryMap *mem)
 {
   memory = mem;
@@ -12,6 +14,15 @@ CPU::CPU(MemoryMap *mem)
 
   cpuName = new char[MaxName];
   setName("Generic CPU");
+
+  instructionNames = _instructionNames;
+  instructionSizes = _instructionSizes;
+  instructionCycles = _instructionSizes;
+  addressingModes = _addressingModes;
+
+  Debug::logf(10, "Memory map:\n");
+  memory->dump();
+  reset();
 }
 
 CPU::~CPU()
@@ -20,31 +31,43 @@ CPU::~CPU()
 
 void CPU::reset()
 {
-  state->reset();
+  sp = 0xff;
+
+  pc = 0;
+  ir = memory->peek(pc);
+
+  lastPc = 0;
+
+  instSize = 0;
+
+  opTrap = 0;
+
+  stepCounter = 0L;
+  running = false;
 }
 
 void CPU::step()
 {
   long opStart = Timer::getNanoTicks();
 
-  state->lastPc = state->pc;
+  lastPc = pc;
 
   checkInterrupts();
 
-  state->ir = memory->peek(state->pc);
+  ir = memory->peek(pc);
 
-  incrememntPC();
+  incrementPC();
 
   // TODO - this assumes 1MHz clock :(
-  state->setInstructionEndTicks(opStart + (state->getInstructionCycles() * 1000));
+  setInstructionEndTicks(opStart + (getInstructionCycles() * 1000));
 
-  state->instSize = state->getInstructionSize();
-  for (int i = 0; i < state->instSize - 1; i++) {
-    state->args[i] = memory->peek(state->pc);
+  instSize = getInstructionSize();
+  for (int i = 0; i < instSize - 1; i++) {
+    args[i] = memory->peek(pc);
     incrementPC();
   }
 
-  state->stepCounter++;
+  stepCounter++;
 
   executeInstruction();
 }
@@ -80,7 +103,110 @@ const char *CPU::getName()
 }
 
 void CPU::incrementPC() {
-  state->pc++;
-  state->pc &= 0xffff;
+  pc++;
+  pc &= 0xffff;
 }
 
+int CPU::load(int addr)
+{
+  lastPc = pc;
+  pc = addr;
+
+  ir = memory->peek(pc);
+  pc++;
+
+  opTrap = false;
+
+  instSize = getInstructionSize();
+  for (int i = 0; i < instSize-1; i++) {
+    args[i] = memory->peek(pc);
+    pc++;
+  }
+
+  return instSize;
+}
+
+byte CPU::getStatusFlag()
+{
+  return 0;
+}
+
+void CPU::getStatusFlagAsString(char *str, int len)
+{
+  snprintf(str, len, "[???]");
+}
+
+void CPU::disassembleOp(char *str, int len)
+{
+  const char *mnemonic = getInstructionName();
+  char address[256];
+  int mode;
+
+  if (mnemonic == NULL) {
+    strncpy(str, "???", len);
+
+    return;
+  }
+
+  mode = getAddressingMode();
+  switch (mode) {
+  default:
+    snprintf(str, len, "!!!! IR=$%02x mode=%d", ir, mode);
+    break;
+  }
+}
+
+const char *CPU::getInstructionName()
+{
+  return instructionNames[ir];
+}
+
+int CPU::getInstructionSize()
+{
+  return instructionSizes[ir];
+}
+
+int CPU::getInstructionCycles()
+{
+  return instructionCycles[ir];
+}
+
+int CPU::getAddressingMode()
+{
+  return addressingModes[ir];
+}
+
+void CPU::setInstructionEndTicks(long endTicks)
+{
+  instructionEndTicks = endTicks;
+}
+
+void CPU::waitForInstructionToEnd()
+{
+  long now = Timer::getNanoTicks();
+
+  while (now < instructionEndTicks) {
+    now = Timer::getNanoTicks();
+  }
+}
+
+void CPU::checkInterrupts()
+{
+}
+
+void CPU::executeInstruction()
+{
+}
+
+void CPU::summary()
+{
+  char flags[64];
+  char src[512];
+
+  disassembleOp(src, sizeof(src));
+  printf("$%04x: %-20s ", lastPc, src);
+
+  getStatusFlagAsString(flags, sizeof(flags));
+  printf("PC: $%04x  SP:$%02x Flags: %s\n",
+	 pc, sp, flags);
+}

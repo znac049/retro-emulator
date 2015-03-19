@@ -8,7 +8,7 @@
 #include "../gem.h"
 #include "../Debug.h"
 #include "../Machines/Machine.h"
-#include "../CPUs/CPUState.h"
+#include "../CPUs/CPU.h"
 
 const CLI::CommandEnt_t CLI::Commands[] = {
   {"q*uit",        QuitCmd},
@@ -28,7 +28,8 @@ const CLI::CommandEnt_t CLI::Commands[] = {
   {"db*ytes",      DumpBytesCmd},
   {"dw*ords",      DumpWordsCmd},
   {"ba*se",        BaseCmd},
-  {"un*assemble",  UnassembleCmd}
+  {"un*assemble",  UnassembleCmd},
+  {"i*nfo",        InfoCmd}
 };
 
 CLI::CLI(Machine *m)
@@ -147,8 +148,6 @@ int CLI::makeArgs(char *line, char **argv, int maxArgs)
 
 int CLI::lookupCommand(char *cmdName)
 {
-  printf("Looking for command '%s'\n", cmdName);
-
   for (int i=0; i<(sizeof(Commands) / sizeof(CommandEnt_t)); i++) {
     if (compareCommand(cmdName, (char *)Commands[i].cmd) == 0) {
       return Commands[i].val;
@@ -181,6 +180,7 @@ void CLI::go()
       handleLine(line);
     }
   }
+  printf("\n");
 }
 
 void CLI::handleLine(char *line)
@@ -282,7 +282,7 @@ void CLI::doResetCmd(int argc, char **argv)
     return;
   }
 
-  machine->getState()->reset();
+  machine->getProcessor()->reset();
 
-  printf("System reset.\nPC=$%04x\n\n", machine->getState()->getPC());
+  printf("System reset.\nPC=$%04x\n\n", machine->getProcessor()->pc);
 }

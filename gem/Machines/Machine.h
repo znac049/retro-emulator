@@ -2,13 +2,11 @@
 #define _MACHINE_H_
 
 class CPU;
-class CPUState;
 class MemoryMap;
 
 class Machine {
  protected:
   CPU *proc;
-  CPUState *state;
   MemoryMap *memory;
   char *machineName;
 
@@ -27,7 +25,6 @@ class Machine {
   void printSummary();
   
   CPU *getProcessor() { return proc; };
-  CPUState *getState() { return state; };
 };
 
 #endif

@@ -1,4 +1,4 @@
-const char *CPUState::_instructionNames[] = {
+const char *CPU::_instructionNames[] = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -33,7 +33,7 @@ const char *CPUState::_instructionNames[] = {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
 };
 
-const int CPUState::_instructionSizes[] = {
+const int CPU::_instructionSizes[] = {
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -52,7 +52,7 @@ const int CPUState::_instructionSizes[] = {
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
-const int CPUState::_instructionCycles[] = {
+const int CPU::_instructionCycles[] = {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -71,7 +71,7 @@ const int CPUState::_instructionCycles[] = {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-const int CPUState::_addressingModes[] = {
+const int CPU::_addressingModes[] = {
       MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE,
       MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE,
       MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE, MODE_NONE,

@@ -23,7 +23,7 @@ class CLI
 	     ClearWatchpointsCmd, RegsCmd,
 	     ResetCmd,            DumpBytesCmd,
 	     DumpWordsCmd,        BaseCmd,
-	     UnassembleCmd
+	     UnassembleCmd,       InfoCmd
   };
 
   bool isTty;
