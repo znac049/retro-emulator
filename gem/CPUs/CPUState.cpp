@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../Debug.h"
 #include "CPUState.h"
 #include "../MemoryMap.h"
+#include "../Timer.h"
+#include "../Debug.h"
 
 #include "CPU.inst"
 
@@ -107,4 +108,18 @@ int CPUState::getInstructionCycles()
 int CPUState::getAddressingMode()
 {
   return addressingModes[ir];
+}
+
+void setInstructionEndTicks(long endTicks)
+{
+  instructionEndTicks = endTicks;
+}
+
+void CPUState::waitForInstructionToEnd()
+{
+  long now = Timer::getNanoTicks();
+
+  while (now < instructionEndTicks) {
+    now = Timer::getNanoTicks();
+  }
 }

@@ -4,12 +4,14 @@
 #include "../gem.h"
 
 class MemoryMap;
+class CPUState;
 
 class CPU {
  private:
 
  protected:
   MemoryMap *memory;
+  CPUState *state;
   bool running;
   bool littleEndian;
 
@@ -27,6 +29,11 @@ class CPU {
   virtual void reset();
   virtual void step();
   virtual void run();
+
+  virtual void checkInterrupts();
+  virtual void executeInstruction();
+
+  virtual void incrementPC();
 
   virtual MemoryMap *getMemory();
 

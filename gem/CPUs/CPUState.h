@@ -41,6 +41,8 @@ class CPUState {
 
   bool running;
 
+  long instructionEndTicks;
+
  protected:
   int argsw() { return ((args[1])<<8) | args[0]; }
 
@@ -60,8 +62,8 @@ class CPUState {
   virtual int getInstructionSize();
   virtual int getInstructionCycles();
 
-  virtual int getPC() { return pc; };
-  virtual int getSP() { return sp; };
+  void setInstructionEndTicks(long endTicks);
+  void waitForInstructionToEnd();
 };
 
 #endif

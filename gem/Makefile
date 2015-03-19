@@ -3,6 +3,7 @@ MODULES= CPUs Debugger Devices Machines Misc UI
 SRCS=gem.cpp \
 	Debug.cpp \
 	MemoryMap.cpp \
+	Timer.cpp \
 	Devices/Device.cpp \
 	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
 	Machines/Machine.cpp \

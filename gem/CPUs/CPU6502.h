@@ -99,8 +99,6 @@ class CPU6502 : public CPU {
   int stackPop();
   int stackPeek();
 
-  void incrementPC();
-
   void assertIrq();
   void clearIrq();
   void assertNmi();
@@ -112,9 +110,6 @@ class CPU6502 : public CPU {
   int zpxAddress(int zp);
   int relAddress(byte offset);
   int zpyAddress(int zp);
-
-  void delayLoop(int opcode);
-  long getNanoTicks();
 
  public:
   CPU6502(MemoryMap *mem);

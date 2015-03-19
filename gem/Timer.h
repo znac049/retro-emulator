@@ -16,8 +16,6 @@ class Timer {
   static int nListeners;
   static int ticksPerTock;
 
-  static Window *win;
-
  private:
   static void optimizeTocks();
 
@@ -32,7 +30,7 @@ class Timer {
   static void start();
   static void stop();
 
-  static long int getNanoTicks();
+  static long getNanoTicks();
 };
 
 #endif

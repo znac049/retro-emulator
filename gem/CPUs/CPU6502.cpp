@@ -15,51 +15,23 @@ CPU6502::CPU6502(MemoryMap *mem) : CPU(mem) {
 CPU6502::~CPU6502() {
 }
 
-void CPU6502::reset()
+void CPU6502::checkInterrupts()
 {
-  state->reset();
-}
-
-void CPU6502::step()
-{
-  opBeginTime = getNanoTicks();
-
-  // Store the address from which the IR was read, for debugging
-  state->lastPc = state->pc;
-
-  // Check for Interrupts before doing anything else.
-  // This will set the PC and jump to the interrupt vector.
   if (state->nmiAsserted) {
     handleNmi();
   } else if (state->irqAsserted && !getIrqDisableFlag()) {
     handleIrq(state->pc);
   }
+}
 
-  // Fetch memory location for this instruction.
-  state->ir = memory->peek(state->pc);
+void CPU6502::executeInstruction()
+{
   irAddressMode = (state->ir >> 2) & 0x07;
   irOpMode = state->ir & 0x03;
 
-  //printf("IR=$%02x  AMode=%d  OpMode=%d\n", state->ir, irAddressMode, irOpMode);
-
-  incrementPC();
+  effectiveAddress = 0;
 
   clearOpTrap();
-
-  // Decode the instruction and operands
-  state->instSize = state->getInstructionSize();
-  for (int i = 0; i < state->instSize - 1; i++) {
-    state->args[i] = memory->peek(state->pc);
-    // Increment PC after reading
-    incrementPC();
-  }
-
-  //printf("instSize=%d\n", state->instSize);
-
-  state->stepCounter++;
-
-  // Get the data from the effective address (if any)
-  effectiveAddress = 0;
 
   switch (irOpMode) {
   case 0:
@@ -599,8 +571,10 @@ void CPU6502::step()
     setOpTrap();
     break;
   }
+}
 
-  delayLoop(state->ir);
+void CPU6502::step()
+{
 }
 
 void CPU6502::handleIrq(word returnPc)
@@ -1065,17 +1039,6 @@ int CPU6502::stackPeek()
   return memory->peek(0x100 + state->sp);
 }
 
-/*
- * Increment the PC, rolling over if necessary.
- */
-void CPU6502::incrementPC() {
-  if (state->pc == 0xffff) {
-    state->pc = 0;
-  } else {
-    state->pc++;
-  }
-}
-
 /**
  * Simulate transition from logic-high to logic-low on the INT line.
  */
@@ -1152,34 +1115,6 @@ int CPU6502::relAddress(byte offset)
 int CPU6502::zpyAddress(int zp)
 {
   return (zp + state->y) & 0xff;
-}
-
-/*
- * Perform a busy-loop for CLOCK_IN_NS nanoseconds
- */
-void CPU6502::delayLoop(int opcode)
-{
-  int clockSteps = state->getInstructionSize();
-
-  // Just a precaution. This could be better.
-  if (clockSteps == 0) {
-    clockSteps = 1;
-  }
-
-  long opScheduledEnd = opBeginTime + clockSteps;
-  long now = getNanoTicks();
-  while(now < opScheduledEnd) {
-    now = getNanoTicks();
-  }
-}
-
-long CPU6502::getNanoTicks()
-{
-  timespec ts;
-
-  clock_gettime(CLOCK_REALTIME, &ts);
-
-  return ts.tv_nsec;
 }
 
 void CPU6502::summary()

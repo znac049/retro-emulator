@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
-#include <ncurses.h>
+#include <time.h>
 
 #include "Timer.h"
-#include "Window.h"
 
 TimerListener *Timer::listeners[MAX_TIMER_LISTENERS];
 useconds_t Timer::intervals[MAX_TIMER_LISTENERS];
@@ -12,8 +11,6 @@ useconds_t Timer::tocks[MAX_TIMER_LISTENERS];
 
 int Timer::nListeners = 0;
 int Timer::ticksPerTock = 1;
-
-Window *Timer::win;
 
 void Timer::start()
 {
@@ -32,9 +29,6 @@ void Timer::timerInterruptHandler(int sig)
   static long bilbo = 0;
 
   bilbo++;
-
-  win->mvprintf(3, 2, "Bilbo: %d", bilbo);
-  win->redraw();
 
   for (int i=0; i<nListeners; i++) {
     if (tocks[i] <= 0) {
@@ -117,24 +111,13 @@ void Timer::optimizeTocks()
   for (int i=0; i<nListeners; i++) {
     tocks[i] = intervals[i] / ticksPerTock;
   }
-
-  if (!win) {
-    win = new Window(10, 30, 0, 0);
-  }
-
-  win->setTitle("Timer");
-  win->mvprintf(1, 2, "nListeners: %d", nListeners);
-  win->mvprintf(2, 2, "ticksPerTock: %d", ticksPerTock);
-
-  for (int i=0; i<nListeners; i++) {
-    win->mvprintf(4 + i, 2, "%d: %d %d", i, intervals[i], tocks[i]);
-  }
-  win->redraw();
 }
 
-long int Timer::getNanoTicks()
+long Timer::getNanoTicks()
 {
-  // TODO: write the code!
+  timespec ts;
 
-  return 0;
+  clock_gettime(CLOCK_REALTIME,&ts);
+
+  return ts.tv_nsec;
 }
