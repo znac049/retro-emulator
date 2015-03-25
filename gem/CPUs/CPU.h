@@ -57,13 +57,12 @@ class CPU {
   virtual void reset();
   virtual void step();
   virtual void run();
+  virtual void incrementPC();
 
   virtual void summary();
 
   virtual void checkInterrupts();
-  virtual void executeInstruction();
-
-  virtual void incrementPC();
+  virtual void executeInstruction(int addr);
 
   virtual MemoryMap *getMemory();
 
@@ -82,6 +81,8 @@ class CPU {
   virtual int getAddressingMode();
   virtual int getInstructionSize();
   virtual int getInstructionCycles();
+
+  virtual void printRegisters();
 
   void setInstructionEndTicks(long endTicks);
   void waitForInstructionToEnd();

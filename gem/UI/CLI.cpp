@@ -218,6 +218,10 @@ void CLI::handleLine(char *line)
       doResetCmd(argc-1, &argv[1]);
       break;
 
+    case StepCmd:
+      doStepCmd(argc-1, &argv[1]);
+      break;
+
     case NoCmd:
       printf("Unknown command: '%s'. Type 'help' for list of commands.\n", argv[0]);
       break;
@@ -273,6 +277,14 @@ void CLI::doBaseCmd(int argc, char **argv)
 
 void CLI::doRegsCmd(int argc, char **argv)
 {
+  CPU *cpu = machine->getProcessor();
+
+  if (argc == 0) {
+    cpu->printRegisters();
+  }
+  else {
+    printf("Ooops!\n");
+  }
 }
 
 void CLI::doResetCmd(int argc, char **argv)
@@ -286,3 +298,15 @@ void CLI::doResetCmd(int argc, char **argv)
 
   printf("System reset.\nPC=$%04x\n\n", machine->getProcessor()->pc);
 }
+
+void CLI::doStepCmd(int argc, char **argv)
+{
+  CPU *cpu = machine->getProcessor();
+  char srcCode[200];
+
+  cpu->disassembleOp(srcCode, sizeof(srcCode));
+  printf("$%04x: %s\n", cpu->pc, srcCode);
+
+  cpu->executeInstruction();
+}
+

@@ -55,7 +55,6 @@ void CPU::step()
   checkInterrupts();
 
   ir = memory->peek(pc);
-
   incrementPC();
 
   // TODO - this assumes 1MHz clock :(
@@ -194,8 +193,15 @@ void CPU::checkInterrupts()
 {
 }
 
-void CPU::executeInstruction()
+void CPU::executeInstruction(int addr)
 {
+  pc = addr;
+
+  printf("Execute instruction at $%04x\n", pc);
+
+  pc++;
+
+  lastPc = pc;
 }
 
 void CPU::summary()
@@ -209,4 +215,9 @@ void CPU::summary()
   getStatusFlagAsString(flags, sizeof(flags));
   printf("PC: $%04x  SP:$%02x Flags: %s\n",
 	 pc, sp, flags);
+}
+
+void CPU::printRegisters()
+{
+  printf("PC=$%04x, SP=$%04x\n", pc, sp);
 }

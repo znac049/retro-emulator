@@ -46,6 +46,7 @@ class CLI
   void doBaseCmd(int argc, char **argv);
   void doRegsCmd(int argc, char **argv);
   void doResetCmd(int argc, char **argv);
+  void doStepCmd(int argc, char **argv);
 
  public:
   CLI(Machine *m);
