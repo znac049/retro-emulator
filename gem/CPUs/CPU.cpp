@@ -4,6 +4,7 @@
 #include "../MemoryMap.h"
 #include "../Timer.h"
 #include "../Debug.h"
+#include "../Misc/Radix.h"
 
 #include "CPU.inst"
 
@@ -68,7 +69,7 @@ void CPU::step()
 
   stepCounter++;
 
-  executeInstruction();
+  executeInstruction(lastPc);
 }
 
 void CPU::run()
@@ -197,7 +198,7 @@ void CPU::executeInstruction(int addr)
 {
   pc = addr;
 
-  printf("Execute instruction at $%04x\n", pc);
+  printf("Execute instruction at %s\n", Radix::toRadix(pc, 4, Radix::RESET));
 
   pc++;
 
@@ -219,5 +220,5 @@ void CPU::summary()
 
 void CPU::printRegisters()
 {
-  printf("PC=$%04x, SP=$%04x\n", pc, sp);
+  printf("PC=%s, SP=%s\n", Radix::toRadix(pc, 4, Radix::RESET), Radix::toRadix(sp, 4));
 }

@@ -47,6 +47,7 @@ class CPU {
 
  protected:
   int argsw() { return ((args[1])<<8) | args[0]; }
+  virtual void executeInstruction(int addr);
 
  public:
   CPU(MemoryMap *mem);
@@ -62,7 +63,6 @@ class CPU {
   virtual void summary();
 
   virtual void checkInterrupts();
-  virtual void executeInstruction(int addr);
 
   virtual MemoryMap *getMemory();
 

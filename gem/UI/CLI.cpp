@@ -9,6 +9,7 @@
 #include "../Debug.h"
 #include "../Machines/Machine.h"
 #include "../CPUs/CPU.h"
+#include "../Misc/Radix.h"
 
 const CLI::CommandEnt_t CLI::Commands[] = {
   {"q*uit",        QuitCmd},
@@ -39,7 +40,8 @@ CLI::CLI(Machine *m)
   isTty = isatty(f);
 
   machine = m;
-  radix = 16;
+
+  Radix::set(16);
 }
 
 int CLI::compareCommand(char *str, char *command)
@@ -252,22 +254,22 @@ void CLI::doBaseCmd(int argc, char **argv)
   }
 
   if (strcasecmp(argv[0], "bin") == 0) {
-    radix = 2;
+    Radix::set(2);
   }
   else if (strcasecmp(argv[0], "oct") == 0) {
-    radix = 8;
+    Radix::set(8);
   }
   else if (strcasecmp(argv[0], "dec") == 0) {
-    radix = 10;
+    Radix::set(10);
   }
   else if (strcasecmp(argv[0], "hex") == 0) {
-    radix = 16;
+    Radix::set(16);
   }
   else {
     int n = atoi(argv[0]);
 
     if ((n==2) || (n==8) || (n==10) || (n==16)) {
-      radix = n;
+      Radix::set(n);
     }
     else {
       printf("unsupported radix '%s'\n", argv[0]);
@@ -307,6 +309,5 @@ void CLI::doStepCmd(int argc, char **argv)
   cpu->disassembleOp(srcCode, sizeof(srcCode));
   printf("$%04x: %s\n", cpu->pc, srcCode);
 
-  cpu->executeInstruction();
+  cpu->step();
 }
-

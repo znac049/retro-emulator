@@ -29,7 +29,6 @@ class CLI
   bool isTty;
   Machine *machine;
   bool running;
-  int radix;
   
  protected:
   bool isBlank(char c);

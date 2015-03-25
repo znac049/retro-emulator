@@ -10,7 +10,8 @@ SRCS=gem.cpp \
 	CPUs/CPU.cpp \
 	CPUs/CPU6502.cpp \
 	UI/CLI.cpp \
-	Misc/AddressHash.cpp Misc/PointTable.cpp
+	Misc/AddressHash.cpp Misc/PointTable.cpp \
+	Misc/Radix.cpp
 
 OBJS=$(subst .cpp,.o,$(addprefix build/,$(notdir $(SRCS))))
 
