@@ -1,6 +1,7 @@
 # Compiled code
 *.o
 *.lib
+*.a
 
 # Logs and temp files
 *.log
