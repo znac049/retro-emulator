@@ -284,8 +284,24 @@ void CLI::doRegsCmd(int argc, char **argv)
   if (argc == 0) {
     cpu->printRegisters();
   }
+  else if ((argc == 2) || (argc == 3)) {
+    char *reg = argv[0];
+    char *val = argv[1];
+
+    if (argc == 3) {
+      if (strcmp(val, "=") == 0) {
+	val = argv[2];
+      }
+      else {
+	printf("usage: r*egister [<register> [ = ] <value>]\n");
+	return;
+      }
+    }
+
+    printf("Set register %s to %s\n", reg, val);
+  }
   else {
-    printf("Ooops!\n");
+    printf("usage: r*egister [<register> [ = ] <value>]\n");
   }
 }
 
