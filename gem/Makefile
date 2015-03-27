@@ -9,6 +9,7 @@ SRCS=gem.cpp \
 	Machines/Machine.cpp \
 	CPUs/CPU.cpp \
 	CPUs/CPU6502.cpp \
+	CPUs/Register.cpp \
 	UI/CLI.cpp \
 	Misc/AddressHash.cpp Misc/PointTable.cpp \
 	Misc/Radix.cpp

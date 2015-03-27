@@ -222,3 +222,20 @@ void CPU::printRegisters()
 {
   printf("PC=%s, SP=%s\n", Radix::toRadix(pc, 4, Radix::RESET), Radix::toRadix(sp, 4));
 }
+
+void CPU::setRegister(const char *reg, int val)
+{
+}
+
+int CPU::getRegister(const char *reg)
+{
+}
+
+bool CPU::isRegister(const char *reg)
+{
+  if ((strcasecmp(reg, "pc") == 0) || (strcasecmp(reg, "sp") == 0)) {
+    return true;
+  }
+
+  return false;
+}

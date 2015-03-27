@@ -83,6 +83,9 @@ class CPU {
   virtual int getInstructionCycles();
 
   virtual void printRegisters();
+  virtual void setRegister(const char *reg, int val);
+  virtual int getRegister(const char *reg);
+  virtual bool isRegister(const char *reg);
 
   void setInstructionEndTicks(long endTicks);
   void waitForInstructionToEnd();
