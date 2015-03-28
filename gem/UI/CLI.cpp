@@ -287,6 +287,7 @@ void CLI::doRegsCmd(int argc, char **argv)
   else if ((argc == 2) || (argc == 3)) {
     char *reg = argv[0];
     char *val = argv[1];
+    int bits;
 
     if (argc == 3) {
       if (strcmp(val, "=") == 0) {
@@ -299,6 +300,26 @@ void CLI::doRegsCmd(int argc, char **argv)
     }
 
     printf("Set register %s to %s\n", reg, val);
+    bits = cpu->sizeOfRegister(reg);
+    if (bits) {
+      int v = Radix::convert(val);
+      cpu->setRegister(reg, v);
+      printf("%s-> %s\n", reg, Radix::toString(v, bits, Radix::RESET));
+    }
+    else {
+      printf("usage: r*egister [<register> [ = ] <value>]\n");
+    }
+  }
+  else if (argc == 1) {
+    char *reg = argv[0];
+    int bits = cpu->sizeOfRegister(reg);
+
+    if (bits) {
+      printf("%s: %s\n", reg, Radix::toString(cpu->getRegister(reg), bits, Radix::RESET));
+    }
+    else {
+      printf("usage: r*egister [<register> [ = ] <value>]\n");
+    }
   }
   else {
     printf("usage: r*egister [<register> [ = ] <value>]\n");

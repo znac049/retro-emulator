@@ -198,7 +198,7 @@ void CPU::executeInstruction(int addr)
 {
   pc = addr;
 
-  printf("Execute instruction at %s\n", Radix::toRadix(pc, 4, Radix::RESET));
+  printf("Execute instruction at %s\n", Radix::toString(pc, 4, Radix::RESET));
 
   pc++;
 
@@ -220,5 +220,43 @@ void CPU::summary()
 
 void CPU::printRegisters()
 {
-  printf("PC=%s, SP=%s\n", Radix::toRadix(pc, 4, Radix::RESET), Radix::toRadix(sp, 4));
+  printf("PC=%s, SP=%s\n", Radix::toString(pc, 16, Radix::RESET), Radix::toString(sp, 16));
+}
+
+void CPU::setRegister(const char *name, int val)
+{
+  if (strcasecmp(name, "pc") == 0) {
+    pc = val;
+  }
+  else if (strcasecmp(name, "sp") == 0) {
+    sp = val;
+  }
+}
+
+int CPU::getRegister(const char *name)
+{
+  if (strcasecmp(name, "pc") == 0) {
+    return pc;
+  }
+  else if (strcasecmp(name, "sp") == 0) {
+    return sp;
+  }
+}
+
+bool CPU::isRegister(const char *name)
+{
+  if ((strcasecmp(name, "pc") == 0) || (strcasecmp(name, "sp") == 0)) {
+    return true;
+  }
+
+  return false;
+}
+
+int CPU::sizeOfRegister(const char *name)
+{
+  if (isRegister(name)) {
+    return 16;
+  }
+
+  return 0;
 }

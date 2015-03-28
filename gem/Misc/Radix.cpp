@@ -44,12 +44,17 @@ int Radix::getFreeBytes()
   return MaxTmpStr - ind;
 }
 
-char *Radix::toRadix(int val, int places)
+int Radix::convert(const char *str)
 {
-  return toRadix(val, places, 0);
+  return 42;
 }
 
-char *Radix::toRadix(int val, int places, int reset)
+char *Radix::toString(int val, int bits)
+{
+  return toString(val, bits, 0);
+}
+
+char *Radix::toString(int val, int bits, int reset)
 {
   char *res;
   char format[16];
@@ -64,8 +69,8 @@ char *Radix::toRadix(int val, int places, int reset)
 
   switch (radix) {
   case 8:
-    if (places) {
-      snprintf(format, 16, "0%%%do", places);
+    if (bits) {
+      snprintf(format, 16, "0%%%do", bits>>1);
       snprintf(res, freeBytes, format, val);
     }
     else {
@@ -74,18 +79,12 @@ char *Radix::toRadix(int val, int places, int reset)
     break;
 
   case 10:
-    if (places) {
-      snprintf(format, 16, "%%%dd", places);
-      snprintf(res, freeBytes, format, val);
-    }
-    else {
-      snprintf(res, freeBytes, "%d", val);
-    }
+    snprintf(res, freeBytes, "%d", val);
     break;
 
   case 16:
-    if (places) {
-      snprintf(format, 16, "0x%%0%dx", places);
+    if (bits) {
+      snprintf(format, 16, "0x%%0%dx", bits>>2);
       snprintf(res, freeBytes, format, val);
     }
     else {

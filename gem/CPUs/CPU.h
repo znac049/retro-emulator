@@ -55,6 +55,11 @@ class CPU {
 
   bool isLittleEndian() { return littleEndian; };
 
+  void setName(const char *newName);
+  const char *getName();
+
+  virtual MemoryMap *getMemory();
+
   virtual void reset();
   virtual void step();
   virtual void run();
@@ -64,14 +69,14 @@ class CPU {
 
   virtual void checkInterrupts();
 
-  virtual MemoryMap *getMemory();
-
   virtual int disassemble(int addr, char *str, int len);
 
-  void setName(const char *newName);
-  const char *getName();
-
   virtual int load(int addr);
+
+  virtual void setRegister(const char *name, int val);
+  virtual int getRegister(const char *name);
+  virtual int sizeOfRegister(const char *name);
+  virtual bool isRegister(const char *name);
 
   virtual byte getStatusFlag();
   virtual void getStatusFlagAsString(char *str, int len);

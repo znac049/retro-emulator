@@ -21,8 +21,9 @@ class Radix
  public:
   static void set(int newRadix);
   static int get();
-  static char *toRadix(int val, int places);
-  static char *toRadix(int val, int places, int reset);
+  static int convert(const char *str);
+  static char *toString(int val, int bits);
+  static char *toString(int val, int bits, int reset);
 };
 
 #endif
