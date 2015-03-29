@@ -198,7 +198,7 @@ void CPU::executeInstruction(int addr)
 {
   pc = addr;
 
-  printf("Execute instruction at %s\n", Radix::toString(pc, 4, Radix::RESET));
+  printf("Execute instruction at %s\n", Radix::toString(pc, 16));
 
   pc++;
 
@@ -220,7 +220,7 @@ void CPU::summary()
 
 void CPU::printRegisters()
 {
-  printf("PC=%s, SP=%s\n", Radix::toString(pc, 16, Radix::RESET), Radix::toString(sp, 16));
+  printf("PC=%s, SP=%s\n", Radix::toString(pc, 16), Radix::toString(sp, 16));
 }
 
 void CPU::setRegister(const char *name, int val)

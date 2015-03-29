@@ -4,7 +4,7 @@
 #include "Radix.h"
 #include "../Debug.h"
 
-char Radix::pool[MaxTmpStr];
+char Radix::pool[PoolSize];
 int Radix::radix = 16;
 int Radix::ind = 0;
 
@@ -20,86 +20,151 @@ int Radix::get()
   return radix;
 }
 
-void Radix::resetPool()
+char *Radix::allocateBytes(int nBytes)
 {
-  ind = 0;
-}
+  char *bytes = &pool[ind];
 
-char *Radix::getPool()
-{
-  return &pool[ind];
-}
-
-void Radix::allocBytes(int nBytes)
-{
   ind += nBytes;
-
-  if (ind >= MaxTmpStr) {
-    Debug::logf(1, "Out of pool space in Radix::allocBytes(%d)\n", nBytes);
+  
+  // Is there enough room?
+  if (ind >= PoolSize) {
+    ind = nBytes;
+    bytes = &pool[0];
   }
+
+  return bytes;
 }
 
-int Radix::getFreeBytes()
+char *Radix::toBinString(int val, int bits)
 {
-  return MaxTmpStr - ind;
+}
+
+char *Radix::toOctString(int val, int bits)
+{
+  int nBytes = 11;
+  char *s;
+
+  val &= 0xffff;
+
+  if (bits == 0) {
+    s = allocateBytes(nBytes);
+
+    snprintf(s, nBytes, "0o%o", val);
+  }
+  else {
+    char fmt[10];
+    sprintf(fmt, "0o%%%do", bits >> 1);
+
+    nBytes = (bits >> 1) + 3;
+    s = allocateBytes(nBytes);
+    snprintf(s, nBytes, fmt, val);
+  }
+
+  return s;
+}
+
+char *Radix::toDecString(int val, int bits)
+{
+}
+
+char *Radix::toHexString(int val, int bits)
+{
+  int nBytes = 7;
+  char *s;
+
+  val &= 0xffff;
+
+  if (bits == 0) {
+    s = allocateBytes(nBytes);
+
+    snprintf(s, nBytes, "0x%x", val);
+  }
+  else {
+    char fmt[10];
+    sprintf(fmt, "0x%%%dx", bits >> 2);
+
+    nBytes = (bits >> 2) + 3;
+    s = allocateBytes(nBytes);
+    snprintf(s, nBytes, fmt, val);
+  }
+
+  return s;
+}
+
+int Radix::convert(const char *str, int base)
+{
+  char *digit = (char *)str;
+  int res = 0;
+
+  while (*digit) {
+    char ch = *digit;
+    int unit;
+
+    if ((ch >= '0') && (ch <= '9')) {
+      unit = ch - '0';
+    }
+    else if ((ch >= 'a') && (ch <= 'f')) {
+      unit = ch - 'a' + 10;
+    }
+    else if ((ch >= 'A') && (ch <= 'F')) {
+      unit = ch - 'F' + 10;
+    }
+    else {
+      return -1;
+    }
+
+    res = (res * base) + unit;
+    digit++;
+  }
+  
+  return res;
 }
 
 int Radix::convert(const char *str)
 {
-  return 42;
+  int base = radix;
+
+  /*
+   * Does it have any of the recognised prefixes:
+   *  0x 0b 0o %h %b %o
+   */
+  if ((strncmp(str, "0x", 2) == 0) || (strncmp(str, "%h", 2) == 0)) {
+    str+=2;
+    base = 16;
+  }
+  else if ((strncmp(str, "0b", 2) == 0) || (strncmp(str, "%b", 2) == 0)) {
+    str+=2;
+    base = 2;
+  }
+  else if ((strncmp(str, "0o", 2) == 0) || (strncmp(str, "%o", 2) == 0)) {
+    str+=2;
+    base = 8;
+  }
+  
+  return convert(str, base);
+}
+
+char *Radix::toString(int val)
+{
+  return toString(val, 0);
 }
 
 char *Radix::toString(int val, int bits)
 {
-  return toString(val, bits, 0);
-}
-
-char *Radix::toString(int val, int bits, int reset)
-{
-  char *res;
-  char format[16];
-  int freeBytes;
-
-  if (reset) {
-    resetPool();
-  }
-
-  res = getPool();
-  freeBytes = getFreeBytes();
-
   switch (radix) {
+  case 2:
+    return toBinString(val, bits);
+
   case 8:
-    if (bits) {
-      snprintf(format, 16, "0%%%do", bits>>1);
-      snprintf(res, freeBytes, format, val);
-    }
-    else {
-      snprintf(res, freeBytes, "%o", val);
-    }
-    break;
+    return toOctString(val, bits);
 
   case 10:
-    snprintf(res, freeBytes, "%d", val);
-    break;
+    return toDecString(val, bits);
 
   case 16:
-    if (bits) {
-      snprintf(format, 16, "0x%%0%dx", bits>>2);
-      snprintf(res, freeBytes, format, val);
-    }
-    else {
-      snprintf(res, freeBytes, "%x", val);
-    }
-    break;
+    return toHexString(val, bits);
 
-  default:
-    *res = '\0';
-    break;
+    return NULL;
   }
-
-  allocBytes(strlen(res) + 1);
-
-  return res;
 }
-
 

@@ -4,26 +4,28 @@
 class Radix
 {
  private:
-  static const int MaxTmpStr = 500;
-  static char pool[MaxTmpStr];
+  static const int PoolSize = 500;
+  static char pool[PoolSize];
   static int ind;
   static int radix;
 
  private:
-  static void resetPool();
-  static char *getPool();
-  static void allocBytes(int nBytes);
-  static int getFreeBytes();
+  static char *allocateBytes(int nBytes);
 
- public:
-  static const int RESET = 1;
+  static char *toBinString(int val, int bits);
+  static char *toOctString(int val, int bits);
+  static char *toDecString(int val, int bits);
+  static char *toHexString(int val, int bits);
 
  public:
   static void set(int newRadix);
   static int get();
+
   static int convert(const char *str);
+  static int convert(const char *str, int base);
+
+  static char *toString(int val);
   static char *toString(int val, int bits);
-  static char *toString(int val, int bits, int reset);
 };
 
 #endif

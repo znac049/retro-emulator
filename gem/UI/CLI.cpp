@@ -248,6 +248,11 @@ void CLI::doHelp()
 
 void CLI::doBaseCmd(int argc, char **argv)
 {
+  if (argc == 0) {
+    printf("current base is %d (dec), 0x%02x\n", Radix::get(), Radix::get());
+    return;
+  }
+
   if (argc != 1) {
     printf("usage: base <2|8|10|16|bin|oct|dec|hex>\n");
     return;
@@ -304,7 +309,7 @@ void CLI::doRegsCmd(int argc, char **argv)
     if (bits) {
       int v = Radix::convert(val);
       cpu->setRegister(reg, v);
-      printf("%s-> %s\n", reg, Radix::toString(v, bits, Radix::RESET));
+      printf("%s-> %s\n", reg, Radix::toString(v, bits));
     }
     else {
       printf("usage: r*egister [<register> [ = ] <value>]\n");
@@ -312,13 +317,32 @@ void CLI::doRegsCmd(int argc, char **argv)
   }
   else if (argc == 1) {
     char *reg = argv[0];
-    int bits = cpu->sizeOfRegister(reg);
+    char *eq = strchr(reg, '=');
 
-    if (bits) {
-      printf("%s: %s\n", reg, Radix::toString(cpu->getRegister(reg), bits, Radix::RESET));
+    if (eq == NULL) {
+      int bits = cpu->sizeOfRegister(reg);
+
+      if (bits) {
+	printf("%s: %s\n", reg, Radix::toString(cpu->getRegister(reg), bits));
+      }
+      else {
+	printf("usage: r*egister [<register> [ = ] <value>]\n");
+      }
     }
     else {
-      printf("usage: r*egister [<register> [ = ] <value>]\n");
+      int bits;
+
+      *eq++ = '\0';
+      bits = cpu->sizeOfRegister(reg);
+      
+      if (bits) {
+	int v = Radix::convert(eq);
+	cpu->setRegister(reg, v);
+	printf("%s-> %s\n", reg, Radix::toString(v, bits));
+      }
+      else {
+	printf("usage: r*egister [<register> [ = ] <value>]\n");
+      }
     }
   }
   else {
