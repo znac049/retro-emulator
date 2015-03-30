@@ -6,6 +6,7 @@
 #include "CLI.h"
 
 #include "../gem.h"
+#include "../MemoryMap.h"
 #include "../Debug.h"
 #include "../Machines/Machine.h"
 #include "../CPUs/CPU.h"
@@ -42,6 +43,8 @@ CLI::CLI(Machine *m)
   machine = m;
 
   Radix::set(16);
+
+  dataAddr = 0;
 }
 
 int CLI::compareCommand(char *str, char *command)
@@ -212,6 +215,10 @@ void CLI::handleLine(char *line)
       doBaseCmd(argc-1, &argv[1]);
       break;
 
+    case DumpBytesCmd:
+      doDumpBytesCmd(argc-1, &argv[1]);
+      break;
+
     case RegsCmd:
       doRegsCmd(argc-1, &argv[1]);
       break;
@@ -371,4 +378,35 @@ void CLI::doStepCmd(int argc, char **argv)
   printf("$%04x: %s\n", cpu->pc, srcCode);
 
   cpu->step();
+}
+
+void CLI::doDumpBytesCmd(int argc, char **argv)
+{
+  int nCols = 8;
+  MemoryMap *mm = machine->getMemoryMap();
+
+  switch (Radix::get()) {
+  case 2:
+    nCols = 4;
+    break;
+
+  case 8:
+  case 10:
+    nCols = 16;
+    break;
+
+  case 16:
+    nCols = 32;
+    break;
+  }
+
+  for (int lines=0; lines<16; lines++) {
+    printf("%s:", Radix::toString(dataAddr, 16));
+
+    for (int cols=0; cols<nCols; cols++) {
+      printf(" %s", Radix::toString(mm->peek(dataAddr++), 8));
+    }
+
+    printf("\n");
+  }
 }

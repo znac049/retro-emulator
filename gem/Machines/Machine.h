@@ -25,6 +25,7 @@ class Machine {
   void printSummary();
   
   CPU *getProcessor() { return proc; };
+  MemoryMap *getMemoryMap() { return memory; };
 };
 
 #endif

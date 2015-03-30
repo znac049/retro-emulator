@@ -144,19 +144,19 @@ MemoryMap::Node *MemoryMap::findDevice(int addr)
 
   while (ent != NULL) {
     if ((addr >= ent->startAddress) && (addr <= ent->endAddress)) {
-      Debug::logf(10, "Found device '%s' in memory map at address $%04x\n", ent->device->getName(), addr);
+      //Debug::logf(10, "Found device '%s' in memory map at address $%04x\n", ent->device->getName(), addr);
       return ent;
     }
 
     ent = ent->next;
 
     if (ent->startAddress > addr) {
-      Debug::logf(10, "No device in memory map at address $%04x\n", addr);
+      //Debug::logf(10, "No device in memory map at address $%04x\n", addr);
       return NULL;
     }
   }
 
-  Debug::logf(10, "No device in memory map at address $%04x\n", addr);
+  //Debug::logf(10, "No device in memory map at address $%04x\n", addr);
   return NULL;
 }
 

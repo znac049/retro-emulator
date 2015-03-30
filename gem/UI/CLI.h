@@ -29,6 +29,8 @@ class CLI
   bool isTty;
   Machine *machine;
   bool running;
+
+  int dataAddr;
   
  protected:
   bool isBlank(char c);
@@ -43,6 +45,7 @@ class CLI
 
   void doHelp();
   void doBaseCmd(int argc, char **argv);
+  void doDumpBytesCmd(int argc, char **argv);
   void doRegsCmd(int argc, char **argv);
   void doResetCmd(int argc, char **argv);
   void doStepCmd(int argc, char **argv);

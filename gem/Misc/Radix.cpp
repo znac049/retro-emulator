@@ -133,11 +133,11 @@ char *Radix::toHexString(int val, int bits)
   if (bits == 0) {
     s = allocateBytes(nBytes);
 
-    snprintf(s, nBytes, "0x%x", val);
+    snprintf(s, nBytes, "$%x", val);
   }
   else {
     char fmt[10];
-    sprintf(fmt, "0x%%0%dx", bits >> 2);
+    sprintf(fmt, "$%%0%dx", bits >> 2);
 
     nBytes = (bits >> 2) + 3;
     s = allocateBytes(nBytes);
