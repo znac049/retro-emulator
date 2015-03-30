@@ -37,6 +37,32 @@ char *Radix::allocateBytes(int nBytes)
 
 char *Radix::toBinString(int val, int bits)
 {
+  int digits = 0;
+  char *s, *cp; 
+
+  for (int i=0; i<16; i++) {
+    if (val & (1<<i)) {
+      digits = i;
+    }
+  }
+  digits++;
+  
+  if (bits) {
+    if (bits > digits) {
+      digits = bits;
+    }
+  }
+
+  cp = s = allocateBytes(digits + 3);
+
+  *cp++ = '%';
+  *cp++ = 'b';
+  for (int i=digits-1; i>=0; i--) {
+    *cp++ = (val & (1<<i))?'1':'0';
+  }
+  *cp = '\0';
+
+  return s;
 }
 
 char *Radix::toOctString(int val, int bits)
@@ -53,9 +79,11 @@ char *Radix::toOctString(int val, int bits)
   }
   else {
     char fmt[10];
-    sprintf(fmt, "0o%%%do", bits >> 1);
+    int places = (bits / 3) + 1;
 
-    nBytes = (bits >> 1) + 3;
+    sprintf(fmt, "0o%%0%do", places);
+
+    nBytes = places + 3;
     s = allocateBytes(nBytes);
     snprintf(s, nBytes, fmt, val);
   }
@@ -65,6 +93,34 @@ char *Radix::toOctString(int val, int bits)
 
 char *Radix::toDecString(int val, int bits)
 {
+  int nBytes = 11;
+  char *s;
+
+  val &= 0xffff;
+
+  if (bits == 0) {
+    s = allocateBytes(nBytes);
+
+    snprintf(s, nBytes, "%d", val);
+  }
+  else {
+    char fmt[10];
+    int places = 1;
+    int n = 1 << bits;;
+
+    while (n > 10) {
+      places++;
+      n = n / 10;
+    }
+
+    sprintf(fmt, "%%0%dd", places);
+
+    nBytes = places + 1;
+    s = allocateBytes(nBytes);
+    snprintf(s, nBytes, fmt, val);
+  }
+
+  return s;
 }
 
 char *Radix::toHexString(int val, int bits)
@@ -81,7 +137,7 @@ char *Radix::toHexString(int val, int bits)
   }
   else {
     char fmt[10];
-    sprintf(fmt, "0x%%%dx", bits >> 2);
+    sprintf(fmt, "0x%%0%dx", bits >> 2);
 
     nBytes = (bits >> 2) + 3;
     s = allocateBytes(nBytes);
