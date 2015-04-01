@@ -6,11 +6,12 @@
 #include "gem.h"
 #include "Debug.h"
 #include "Machine.h"
+#include "ADMachine.h"
 #include "CLI.h"
 
 void startGameWithConsole(const char *game)
 {
-  Machine m;
+  ADMachine m;
   CLI cli(&m);;
 
   m.printSummary();

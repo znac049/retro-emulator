@@ -44,7 +44,7 @@ CLI::CLI(Machine *m)
 
   Radix::set(16);
 
-  dataAddr = 0;
+  dataAddr = 0x6000;
 }
 
 int CLI::compareCommand(char *str, char *command)

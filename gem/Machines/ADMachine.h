@@ -17,19 +17,12 @@ class ADMachine : public Machine {
   MemoryDevice       *vectorRam;
   MemoryDevice       *vectorRom;
 
-  Pokey              *pokey;
-
-  Console            *tty;
-
  protected:
 
  public:
   ~ADMachine();
 
   void configureDevice();
-
-  void enterCommandLoop();
-  void timerFired();
 };
 
 #endif
