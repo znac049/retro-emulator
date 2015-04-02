@@ -4,10 +4,15 @@
 
 #include "ADMachine.h"
 #include "../MemoryMap.h"
+#include "../Debug.h"
 #include "../Devices/MemoryDevice.h"
 
-void ADMachine::configureDevice()
+void ADMachine::configureDevices()
 {
+  Debug::logf(1, "ADMachine::configureDevices()\n");
+
+  setName("Asteroids Deluxe (V3 Roms)");
+
   ram = new MemoryDevice(2048, 0);
   rom = new MemoryDevice(8192, 1);
 
@@ -17,12 +22,12 @@ void ADMachine::configureDevice()
   vectorRom = new MemoryDevice(4096, 1);
   vectorRom->setName("Vector ROM");
 
-  mm = new MemoryMap(0x10000);
-  mm->connect(ram,            0);
-  mm->connect(vectorRam,      0x4000);
-  mm->connect(vectorRom,      0x4800);
-  mm->connect(rom,            0x6000);
-  mm->connect(rom,            0xe000);
+  memory = new MemoryMap(0x10000);
+  memory->connect(ram,            0);
+  memory->connect(vectorRam,      0x4000);
+  memory->connect(vectorRom,      0x4800);
+  memory->connect(rom,            0x6000);
+  memory->connect(rom,            0xe000);
 
   rom->load("roms/adlx.rom");
   vectorRom->load("roms/adlx.vrom");

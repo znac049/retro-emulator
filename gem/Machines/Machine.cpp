@@ -8,7 +8,7 @@
 #include "../CPUs/CPU.h"
 #include "../Devices/MemoryDevice.h"
 
-Machine::Machine()
+void Machine::configure()
 {
   machineName = (char *)malloc(MaxName);
   setName("Base Machine");
@@ -21,7 +21,7 @@ Machine::Machine()
 
 void Machine::configureDevices()
 {
-  Debug::logf(10, "configureDevices()\n");
+  Debug::logf(1, "Machine::configureDevices()\n");
   MemoryDevice *ram = new MemoryDevice(0x10000, false);
 
   memory->connect(ram, 0);

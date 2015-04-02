@@ -5,22 +5,27 @@
 
 #include "gem.h"
 #include "Debug.h"
-#include "Machine.h"
 #include "ADMachine.h"
 #include "CLI.h"
 
 void startGameWithConsole(const char *game)
 {
   ADMachine m;
-  CLI cli(&m);;
+  CLI *cli;
+
+  m.configure();
+
+  cli = new CLI(&m);;
 
   m.printSummary();
-  cli.go();
+  cli->go();
 }
 
 void startGame(const char *game)
 {
-  Machine m;
+  ADMachine m;
+  
+  m.configure();
 
   m.printSummary();
 }

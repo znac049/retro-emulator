@@ -14,11 +14,10 @@ class Machine {
   static const int MaxName = 200;
 
  public:
-  Machine();
-
   void setName(const char *newName);
   const char *getName();
 
+  void configure();
   virtual void configureDevices();
   virtual void configureProcessor();
 

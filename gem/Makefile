@@ -35,7 +35,7 @@ builddir:
 	mkdir -p build
 
 gem: $(OBJS)
-	$(CXX) $(LDFLAGS) -o gem $(OBJS) $(LDLIBS) 
+	$(CC) $(LDFLAGS) -o gem $(OBJS) $(LDLIBS) 
 
 clean:
 	$(RM) $(OBJS) build/* *~ gem

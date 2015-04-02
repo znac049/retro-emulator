@@ -35,12 +35,13 @@ byte MemoryDevice::readByte(int addr)
   return bytes[addr];
 }
 
+bool MemoryDevice::canWrite(int addr)
+{
+  return !read_only;
+}
+
 void MemoryDevice::writeByte(int addr, byte b)
 {
-  if (read_only) {
-    throw "Attempt to write to readonly memory";
-  }
-
   bytes[addr] = b;
 }
 

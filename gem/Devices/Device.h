@@ -31,6 +31,7 @@ class Device
 
   virtual byte readByte(int addr);
   virtual void writeByte(int addr, byte b);
+  virtual bool canWrite(int addr) { return true; };
 
   bool save(const char *loc, bool overwrite);
   int load(const char *loc);
