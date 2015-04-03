@@ -3,6 +3,11 @@
 *.lib
 *.a
 
+# Doxygen fallout
+*.eps
+*.tex
+*.dvi
+
 # Logs and temp files
 *.log
 zz

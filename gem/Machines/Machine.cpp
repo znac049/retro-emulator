@@ -8,15 +8,20 @@
 #include "../CPUs/CPU.h"
 #include "../Devices/MemoryDevice.h"
 
-void Machine::construct()
+void Machine::construct(const char *name)
 {
   machineName = (char *)malloc(MaxName);
-  setName("Base Machine");
+  setName(name);
 
   memory = new MemoryMap(0x10000);
 
   configureDevices();
-  configureProcessor();
+  configureProcessor();  
+}
+
+void Machine::construct()
+{
+  construct("Unnamed Machine");
 }
 
 void Machine::configureDevices()
@@ -31,16 +36,6 @@ void Machine::configureProcessor()
 {
   Debug::logf(10, "configureProcessor()\n");
   proc = new CPU(memory);
-}
-
-void Machine::setName(const char *newName)
-{
-  strncpy(machineName, newName, MaxName);
-}
-
-const char *Machine::getName()
-{
-  return (const char *)machineName;
 }
 
 void Machine::printSummary()

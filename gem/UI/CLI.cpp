@@ -460,9 +460,23 @@ void CLI::doDumpBytesCmd(int argc, char **argv)
   for (int lines=0; lines<16; lines++) {
     printf("%s:", Radix::toString(dataAddr, 16));
 
-    for (int cols=0; cols<nCols; cols++) {
-      printf(" %s", Radix::toString(mm->peek(dataAddr++), 8));
+    for (int col=0; col<nCols; col++) {
+      printf(" %s", Radix::toString(mm->peek(dataAddr+col), 8));
     }
+
+    printf("    ");
+    for (int col=0; col<nCols; col++) {
+      char ch = mm->peek(dataAddr+col);
+
+      if ((ch < ' ') || (ch >= 127)) {
+	putchar('.');
+      }
+      else {
+	putchar(ch);
+      }
+    }
+
+    dataAddr += nCols;
 
     printf("\n");
   }
