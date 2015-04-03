@@ -1,3 +1,7 @@
+/**
+ * @class Machine
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
@@ -35,7 +39,9 @@ void Machine::configureDevices()
 void Machine::configureProcessor()
 {
   Debug::logf(10, "configureProcessor()\n");
-  proc = new CPU(memory);
+  proc = new CPU();
+
+  proc->construct(memory);
 }
 
 void Machine::printSummary()

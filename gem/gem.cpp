@@ -7,6 +7,7 @@
 #include "Debug.h"
 #include "ADMachine.h"
 #include "CLI.h"
+#include "Misc/Radix.h"
 
 void startGameWithConsole(const char *game)
 {
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
   int opt;
   bool console = false;
   char gameName[MAXSTR];
+  int val;
 
   Debug::setLevel(20);
 
@@ -42,8 +44,9 @@ int main(int argc, char **argv)
 
   static struct option long_options[] = {
     {"console", no_argument, NULL, 'C'},
-    {"game",    required_argument, NULL, 'g'},
     {"defs",    optional_argument, NULL, 'd'},
+    {"debug",   optional_argument, NULL, 'D'},
+    {"game",    required_argument, NULL, 'g'},
     {NULL, 0, NULL, 0}
   };
 
@@ -52,6 +55,17 @@ int main(int argc, char **argv)
     switch (opt) {
     case 'C':
       console = true;
+      break;
+
+    case 'D':
+      val = Radix::convert(optarg, 10);
+      if (val == -1) {
+	printf("Bad debug option: %s\n",  optarg);
+	exit(1);
+      }
+      else {
+	Debug::setLevel(val);
+      }
       break;
 
     case 'g':
