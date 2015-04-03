@@ -31,7 +31,8 @@ const CLI::CommandEnt_t CLI::Commands[] = {
   {"dw*ords",      DumpWordsCmd},
   {"ba*se",        BaseCmd},
   {"un*assemble",  UnassembleCmd},
-  {"i*nfo",        InfoCmd}
+  {"i*nfo",        InfoCmd},
+  {"de*bug",       DebugCmd}
 };
 
 CLI::CLI(Machine *m)
@@ -207,6 +208,10 @@ void CLI::handleLine(char *line)
       running = false;
       break;
 
+    case DebugCmd:
+      doDebugCmd(argc-1, &argv[1]);
+      break;
+
     case HelpCmd:
       doHelp();
       break;
@@ -369,6 +374,46 @@ void CLI::doResetCmd(int argc, char **argv)
   printf("System reset.\nPC=$%04x\n\n", machine->getProcessor()->pc);
 }
 
+void CLI::doDebugCmd(int argc, char **argv)
+{
+  int lvl;
+
+  if ((argc < 0) || (argc > 1)) {
+    printf("usage: debug [ all | off | <level> ]\n");
+    return;
+  }
+
+  if (argc) {
+    char *level = argv[0];
+
+    if (strcasecmp(level, "off") == 0) {
+      Debug::setLevel(0);
+    }
+    else if (strcasecmp(level, "all") == 0) {
+      Debug::setLevel(99);
+    }
+    else {
+      lvl = Radix::convert(level);
+
+      if (lvl == -1) {
+	printf("usage: debug [ all | off | <level> ]\n");
+	return;
+      }
+
+      Debug::setLevel(lvl);
+    }
+  }
+
+  lvl = Debug::getLevel();
+
+  if (lvl) {
+    printf("Debug level is %s\n", Radix::toString(lvl));
+  }
+  else {
+    printf("All debugging is turned off\n");
+  }
+}
+
 void CLI::doStepCmd(int argc, char **argv)
 {
   CPU *cpu = machine->getProcessor();
@@ -392,12 +437,24 @@ void CLI::doDumpBytesCmd(int argc, char **argv)
 
   case 8:
   case 10:
+  case 16:
     nCols = 16;
     break;
+  }
 
-  case 16:
-    nCols = 32;
-    break;
+  if (argc > 1) {
+    printf("usage: db*ytes [ <start addr> ]\n");
+    return;
+  }
+  else if (argc == 1) {
+    int addr = Radix::convert(argv[0]);
+
+    if (addr == -1) {
+      printf("usage: db*ytes [ <start addr> ]\n");
+      return;
+    }
+
+    dataAddr = addr;
   }
 
   for (int lines=0; lines<16; lines++) {

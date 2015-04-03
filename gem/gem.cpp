@@ -13,7 +13,7 @@ void startGameWithConsole(const char *game)
   ADMachine m;
   CLI *cli;
 
-  m.configure();
+  m.construct();
 
   cli = new CLI(&m);;
 
@@ -25,7 +25,7 @@ void startGame(const char *game)
 {
   ADMachine m;
   
-  m.configure();
+  m.construct();
 
   m.printSummary();
 }

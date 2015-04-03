@@ -23,7 +23,8 @@ class CLI
 	     ClearWatchpointsCmd, RegsCmd,
 	     ResetCmd,            DumpBytesCmd,
 	     DumpWordsCmd,        BaseCmd,
-	     UnassembleCmd,       InfoCmd
+	     UnassembleCmd,       InfoCmd,
+	     DebugCmd
   };
 
   bool isTty;
@@ -44,6 +45,7 @@ class CLI
   int compareCommand(char *str, char *command);
 
   void doHelp();
+  void doDebugCmd(int argc, char **argv);
   void doBaseCmd(int argc, char **argv);
   void doDumpBytesCmd(int argc, char **argv);
   void doRegsCmd(int argc, char **argv);

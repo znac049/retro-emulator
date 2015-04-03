@@ -17,7 +17,7 @@ class Machine {
   void setName(const char *newName);
   const char *getName();
 
-  void configure();
+  void construct();
   virtual void configureDevices();
   virtual void configureProcessor();
 

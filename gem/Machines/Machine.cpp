@@ -8,7 +8,7 @@
 #include "../CPUs/CPU.h"
 #include "../Devices/MemoryDevice.h"
 
-void Machine::configure()
+void Machine::construct()
 {
   machineName = (char *)malloc(MaxName);
   setName("Base Machine");
