@@ -12,6 +12,7 @@
 #define _CPU_H_
 
 #include "../gem.h"
+#include "../Misc/TimeStamp.h"
 
 class MemoryMap;
 
@@ -35,6 +36,8 @@ class CPU {
   const int *instructionSizes;
   const int *instructionCycles;
   const int *addressingModes;
+
+  TimeStamp ts;
 
  public:
   static const int MaxCPUName = 100;
@@ -106,12 +109,6 @@ class CPU {
   virtual int getInstructionCycles(int ir, int addr) { return instructionCycles[ir]; };
 
   virtual void printRegisters();
-  virtual void setRegister(const char *reg, int val);
-  virtual int getRegister(const char *reg);
-  virtual bool isRegister(const char *reg);
-
-  void setInstructionEndTicks(long endTicks);
-  void waitForInstructionToEnd();
 };
 
 #endif

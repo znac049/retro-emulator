@@ -9,6 +9,10 @@ int Debug::setLevel(int level)
 {
   int oldLevel = debugLevel;
 
+  if (level > 99) {
+    level = 99;
+  }
+
   debugLevel = level;
 
   return oldLevel;

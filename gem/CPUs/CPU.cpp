@@ -1,9 +1,10 @@
+#include <stdio.h>
 #include <string.h>
 
 #include "CPU.h"
 #include "../MemoryMap.h"
-#include "../Timer.h"
 #include "../Debug.h"
+#include "../Misc/TimeStamp.h"
 #include "../Misc/Radix.h"
 
 #include "CPU.inst"
@@ -54,16 +55,23 @@ void CPU::reset()
 
 void CPU::step()
 {
-  long opStart = Timer::getNanoTicks();
-
+  ts.wait();
   checkInterrupts();
 
   instSize = loadInstruction(pc);
-
-  setInstructionEndTicks(opStart + (getInstructionCycles() * 1000));
   stepCounter++;
 
+  ts.now();
   executeInstruction(lastPc);
+}
+
+void CPU::executeInstruction(int addr)
+{
+  pc = addr;
+
+  printf("Execute instruction at %s\n", Radix::toString(pc, 16));
+
+  pc++;
 }
 
 void CPU::run()
@@ -133,31 +141,8 @@ void CPU::disassembleOp(char *str, int len)
   }
 }
 
-void CPU::setInstructionEndTicks(long endTicks)
-{
-  instructionEndTicks = endTicks;
-}
-
-void CPU::waitForInstructionToEnd()
-{
-  long now = Timer::getNanoTicks();
-
-  while (now < instructionEndTicks) {
-    now = Timer::getNanoTicks();
-  }
-}
-
 void CPU::checkInterrupts()
 {
-}
-
-void CPU::executeInstruction(int addr)
-{
-  pc = addr;
-
-  printf("Execute instruction at %s\n", Radix::toString(pc, 16));
-
-  pc++;
 }
 
 void CPU::summary()
@@ -214,21 +199,4 @@ int CPU::sizeOfRegister(const char *name)
   }
 
   return 0;
-}
-
-void CPU::setRegister(const char *reg, int val)
-{
-}
-
-int CPU::getRegister(const char *reg)
-{
-}
-
-bool CPU::isRegister(const char *reg)
-{
-  if ((strcasecmp(reg, "pc") == 0) || (strcasecmp(reg, "sp") == 0)) {
-    return true;
-  }
-
-  return false;
 }

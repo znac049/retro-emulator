@@ -38,8 +38,6 @@ int main(int argc, char **argv)
   char gameName[MAXSTR];
   int val;
 
-  Debug::setLevel(20);
-
   strncpy(gameName, "AD-v3", MAXSTR);
 
   static struct option long_options[] = {

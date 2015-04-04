@@ -3,16 +3,17 @@ MODULES= CPUs Debugger Devices Machines Misc UI
 SRCS=gem.cpp \
 	Debug.cpp \
 	MemoryMap.cpp \
-	Timer.cpp \
 	Devices/Device.cpp \
 	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
 	Machines/Machine.cpp \
 	Machines/ADMachine.cpp \
 	CPUs/CPU.cpp \
 	CPUs/CPU6502.cpp \
-	CPUs/Register.cpp \
 	UI/CLI.cpp \
-	Misc/AddressHash.cpp Misc/PointTable.cpp \
+	Misc/AddressHash.cpp \
+	Misc/PointTable.cpp \
+	Misc/Timer.cpp \
+	Misc/TimeStamp.cpp \
 	Misc/Radix.cpp
 
 OBJS=$(subst .cpp,.o,$(addprefix build/,$(notdir $(SRCS))))
