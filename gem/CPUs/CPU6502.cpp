@@ -7,7 +7,10 @@
 
 #include "6502.inst"
 
-CPU6502::CPU6502(MemoryMap *mem) : CPU(mem) {
+void CPU6502::construct(MemoryMap *mem)
+{
+  CPU::construct(mem);
+
   behaviour = NMOS_WITH_INDIRECT_JMP_BUG;
 
   instructionNames = _instructionNames;
@@ -16,9 +19,6 @@ CPU6502::CPU6502(MemoryMap *mem) : CPU(mem) {
   addressingModes = _addressingModes;
 
   reset();
-}
-
-CPU6502::~CPU6502() {
 }
 
 void CPU6502::reset()
@@ -31,13 +31,8 @@ void CPU6502::reset()
   sp = 0xff;
 
   pc = memory->peekw(RST_VECTOR_L);
-  ir = memory->peek(pc);
+  instSize = loadInstruction(pc);
 
-  lastPc = 0;
-
-  instSize = 0;
-
-  opTrap = 0;
   irqAsserted = nmiAsserted = false;
 
   carryFlag = false;
@@ -47,28 +42,6 @@ void CPU6502::reset()
   decimalModeFlag = false;
   breakFlag = false;
   overflowFlag = false;
-
-  stepCounter = 0L;
-  running = false;
-}
-
-int CPU6502::load(int addr)
-{
-  lastPc = pc;
-  pc = addr;
-
-  ir = memory->peek(pc);
-  pc++;
-
-  opTrap = false;
-
-  instSize = getInstructionSize();
-  for (int i = 0; i < instSize-1; i++) {
-    args[i] = memory->peek(pc);
-    pc++;
-  }
-
-  return instSize;
 }
 
 void CPU6502::checkInterrupts()
@@ -80,8 +53,12 @@ void CPU6502::checkInterrupts()
   }
 }
 
-void CPU6502::executeInstruction()
+void CPU6502::executeInstruction(int addr)
 {
+  int s = loadInstruction(addr);
+  byte ir = instruction[0];
+  byte *args = &instruction[1];
+
   irAddressMode = (ir >> 2) & 0x07;
   irOpMode = ir & 0x03;
 
@@ -1182,10 +1159,6 @@ void CPU6502::summary()
 	 pc, a, x, y, sp, flags);
 }
 
-MemoryMap *CPU6502::getMemory() {
-  return memory;
-}
-
 int CPU6502::disassemble(int addr, char*str, int len)
 {
   strncpy(str, "???", len);
@@ -1245,6 +1218,7 @@ void CPU6502::disassembleOp(char *str, int len)
 {
   const char *mnemonic = getInstructionName();
   char address[256];
+  byte *args = &instruction[1];
 
   if (mnemonic == NULL) {
     strncpy(str, "???", len);
@@ -1316,7 +1290,7 @@ void CPU6502::disassembleOp(char *str, int len)
     break;
 
   default:
-    snprintf(str, len, "!!!! IR=$%02x mode=%d", ir, getAddressingMode());
+    snprintf(str, len, "!!!! IR=$%02x mode=%d", instruction[0], getAddressingMode());
     break;
   }
 }

@@ -7,6 +7,7 @@ SRCS=gem.cpp \
 	Devices/Device.cpp \
 	Devices/MemoryDevice.cpp Devices/RegisterBasedDevice.cpp \
 	Machines/Machine.cpp \
+	Machines/ADMachine.cpp \
 	CPUs/CPU.cpp \
 	CPUs/CPU6502.cpp \
 	CPUs/Register.cpp \
@@ -35,7 +36,7 @@ builddir:
 	mkdir -p build
 
 gem: $(OBJS)
-	$(CXX) $(LDFLAGS) -o gem $(OBJS) $(LDLIBS) 
+	$(CC) $(LDFLAGS) -o gem $(OBJS) $(LDLIBS) 
 
 clean:
 	$(RM) $(OBJS) build/* *~ gem

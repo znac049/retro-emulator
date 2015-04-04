@@ -157,24 +157,21 @@ class CPU6502 : public CPU {
   int relAddress(byte offset);
   int zpyAddress(int zp);
 
- public:
-  CPU6502(MemoryMap *mem);
-  ~CPU6502();
+  int argsw() { return (instruction[2] << 8) | instruction[1]; };
 
+ public:
+  void construct(MemoryMap *mem);
   void reset();
   void summary();
 
-  MemoryMap *getMemory();
   int disassemble(int addr, char*str, int len);
-
-  int load(int addr);
 
   byte getStatusFlag();
   void getStatusFlagAsString(char *str, int len);
   void disassembleOp(char *str, int len);
 
   void checkInterrupts();
-  void executeInstruction();
+  void executeInstruction(int addr);
 };
 
 #endif

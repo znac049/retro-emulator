@@ -1,3 +1,7 @@
+/**
+ * @class Machine
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
@@ -8,20 +12,25 @@
 #include "../CPUs/CPU.h"
 #include "../Devices/MemoryDevice.h"
 
-Machine::Machine()
+void Machine::construct(const char *name)
 {
   machineName = (char *)malloc(MaxName);
-  setName("Base Machine");
+  setName(name);
 
   memory = new MemoryMap(0x10000);
 
   configureDevices();
-  configureProcessor();
+  configureProcessor();  
+}
+
+void Machine::construct()
+{
+  construct("Unnamed Machine");
 }
 
 void Machine::configureDevices()
 {
-  Debug::logf(10, "configureDevices()\n");
+  Debug::logf(1, "Machine::configureDevices()\n");
   MemoryDevice *ram = new MemoryDevice(0x10000, false);
 
   memory->connect(ram, 0);
@@ -30,17 +39,9 @@ void Machine::configureDevices()
 void Machine::configureProcessor()
 {
   Debug::logf(10, "configureProcessor()\n");
-  proc = new CPU(memory);
-}
+  proc = new CPU();
 
-void Machine::setName(const char *newName)
-{
-  strncpy(machineName, newName, MaxName);
-}
-
-const char *Machine::getName()
-{
-  return (const char *)machineName;
+  proc->construct(memory);
 }
 
 void Machine::printSummary()

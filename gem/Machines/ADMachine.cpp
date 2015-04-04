@@ -3,17 +3,16 @@
 #include <signal.h>
 
 #include "ADMachine.h"
-
 #include "../MemoryMap.h"
-#include "../CPUs/CPU6502.h"
-#include "../Devices/Pokey.h"
+#include "../Debug.h"
 #include "../Devices/MemoryDevice.h"
 
-#include "../UI/Console.h"
-#include "../TimerListener.h"
-
-void ADMachine::configureDevice()
+void ADMachine::configureDevices()
 {
+  Debug::logf(1, "ADMachine::configureDevices()\n");
+
+  setName("Asteroids Deluxe (V3 Roms)");
+
   ram = new MemoryDevice(2048, 0);
   rom = new MemoryDevice(8192, 1);
 
@@ -23,34 +22,18 @@ void ADMachine::configureDevice()
   vectorRom = new MemoryDevice(4096, 1);
   vectorRom->setName("Vector ROM");
 
-  pokey = new Pokey();
-
-  mm = new MemoryMap(0x10000);
-  mm->connect(ram,            0);
-  mm->connect(pokey,          0x2c00);
-  mm->connect(vectorRam,      0x4000);
-  mm->connect(vectorRom,      0x4800);
-  mm->connect(rom,            0x6000);
-  mm->connect(rom,            0xe000);
+  memory = new MemoryMap(0x10000);
+  memory->connect(ram,            0);
+  memory->connect(vectorRam,      0x4000);
+  memory->connect(vectorRom,      0x4800);
+  memory->connect(rom,            0x6000);
+  memory->connect(rom,            0xe000);
 
   rom->load("roms/adlx.rom");
   vectorRom->load("roms/adlx.vrom");
-
-  proc = new CPU6502(mm);
-  tty = new Console((CPU6502 *)proc);
-
-  proc->reset();
 }
 
 ADMachine::~ADMachine()
 {
   ualarm(0, 0);
-
-  delete proc;
-  delete tty;
-}
-
-void ADMachine::enterCommandLoop()
-{
-  tty->commandLoop();
 }

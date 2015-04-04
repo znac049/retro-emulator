@@ -6,6 +6,7 @@
 #include "CLI.h"
 
 #include "../gem.h"
+#include "../MemoryMap.h"
 #include "../Debug.h"
 #include "../Machines/Machine.h"
 #include "../CPUs/CPU.h"
@@ -30,7 +31,8 @@ const CLI::CommandEnt_t CLI::Commands[] = {
   {"dw*ords",      DumpWordsCmd},
   {"ba*se",        BaseCmd},
   {"un*assemble",  UnassembleCmd},
-  {"i*nfo",        InfoCmd}
+  {"i*nfo",        InfoCmd},
+  {"de*bug",       DebugCmd}
 };
 
 CLI::CLI(Machine *m)
@@ -42,6 +44,8 @@ CLI::CLI(Machine *m)
   machine = m;
 
   Radix::set(16);
+
+  dataAddr = 0x6000;
 }
 
 int CLI::compareCommand(char *str, char *command)
@@ -204,12 +208,20 @@ void CLI::handleLine(char *line)
       running = false;
       break;
 
+    case DebugCmd:
+      doDebugCmd(argc-1, &argv[1]);
+      break;
+
     case HelpCmd:
       doHelp();
       break;
 
     case BaseCmd:
       doBaseCmd(argc-1, &argv[1]);
+      break;
+
+    case DumpBytesCmd:
+      doDumpBytesCmd(argc-1, &argv[1]);
       break;
 
     case RegsCmd:
@@ -248,6 +260,11 @@ void CLI::doHelp()
 
 void CLI::doBaseCmd(int argc, char **argv)
 {
+  if (argc == 0) {
+    printf("current base is %d (dec), 0x%02x\n", Radix::get(), Radix::get());
+    return;
+  }
+
   if (argc != 1) {
     printf("usage: base <2|8|10|16|bin|oct|dec|hex>\n");
     return;
@@ -287,6 +304,7 @@ void CLI::doRegsCmd(int argc, char **argv)
   else if ((argc == 2) || (argc == 3)) {
     char *reg = argv[0];
     char *val = argv[1];
+    int bits;
 
     if (argc == 3) {
       if (strcmp(val, "=") == 0) {
@@ -299,6 +317,45 @@ void CLI::doRegsCmd(int argc, char **argv)
     }
 
     printf("Set register %s to %s\n", reg, val);
+    bits = cpu->sizeOfRegister(reg);
+    if (bits) {
+      int v = Radix::convert(val);
+      cpu->setRegister(reg, v);
+      printf("%s-> %s\n", reg, Radix::toString(v, bits));
+    }
+    else {
+      printf("usage: r*egister [<register> [ = ] <value>]\n");
+    }
+  }
+  else if (argc == 1) {
+    char *reg = argv[0];
+    char *eq = strchr(reg, '=');
+
+    if (eq == NULL) {
+      int bits = cpu->sizeOfRegister(reg);
+
+      if (bits) {
+	printf("%s: %s\n", reg, Radix::toString(cpu->getRegister(reg), bits));
+      }
+      else {
+	printf("usage: r*egister [<register> [ = ] <value>]\n");
+      }
+    }
+    else {
+      int bits;
+
+      *eq++ = '\0';
+      bits = cpu->sizeOfRegister(reg);
+      
+      if (bits) {
+	int v = Radix::convert(eq);
+	cpu->setRegister(reg, v);
+	printf("%s-> %s\n", reg, Radix::toString(v, bits));
+      }
+      else {
+	printf("usage: r*egister [<register> [ = ] <value>]\n");
+      }
+    }
   }
   else {
     printf("usage: r*egister [<register> [ = ] <value>]\n");
@@ -317,6 +374,46 @@ void CLI::doResetCmd(int argc, char **argv)
   printf("System reset.\nPC=$%04x\n\n", machine->getProcessor()->pc);
 }
 
+void CLI::doDebugCmd(int argc, char **argv)
+{
+  int lvl;
+
+  if ((argc < 0) || (argc > 1)) {
+    printf("usage: debug [ all | off | <level> ]\n");
+    return;
+  }
+
+  if (argc) {
+    char *level = argv[0];
+
+    if (strcasecmp(level, "off") == 0) {
+      Debug::setLevel(0);
+    }
+    else if (strcasecmp(level, "all") == 0) {
+      Debug::setLevel(99);
+    }
+    else {
+      lvl = Radix::convert(level);
+
+      if (lvl == -1) {
+	printf("usage: debug [ all | off | <level> ]\n");
+	return;
+      }
+
+      Debug::setLevel(lvl);
+    }
+  }
+
+  lvl = Debug::getLevel();
+
+  if (lvl) {
+    printf("Debug level is %s\n", Radix::toString(lvl));
+  }
+  else {
+    printf("All debugging is turned off\n");
+  }
+}
+
 void CLI::doStepCmd(int argc, char **argv)
 {
   CPU *cpu = machine->getProcessor();
@@ -326,4 +423,61 @@ void CLI::doStepCmd(int argc, char **argv)
   printf("$%04x: %s\n", cpu->pc, srcCode);
 
   cpu->step();
+}
+
+void CLI::doDumpBytesCmd(int argc, char **argv)
+{
+  int nCols = 8;
+  MemoryMap *mm = machine->getMemoryMap();
+
+  switch (Radix::get()) {
+  case 2:
+    nCols = 4;
+    break;
+
+  case 8:
+  case 10:
+  case 16:
+    nCols = 16;
+    break;
+  }
+
+  if (argc > 1) {
+    printf("usage: db*ytes [ <start addr> ]\n");
+    return;
+  }
+  else if (argc == 1) {
+    int addr = Radix::convert(argv[0]);
+
+    if (addr == -1) {
+      printf("usage: db*ytes [ <start addr> ]\n");
+      return;
+    }
+
+    dataAddr = addr;
+  }
+
+  for (int lines=0; lines<16; lines++) {
+    printf("%s:", Radix::toString(dataAddr, 16));
+
+    for (int col=0; col<nCols; col++) {
+      printf(" %s", Radix::toString(mm->peek(dataAddr+col), 8));
+    }
+
+    printf("    ");
+    for (int col=0; col<nCols; col++) {
+      char ch = mm->peek(dataAddr+col);
+
+      if ((ch < ' ') || (ch >= 127)) {
+	putchar('.');
+      }
+      else {
+	putchar(ch);
+      }
+    }
+
+    dataAddr += nCols;
+
+    printf("\n");
+  }
 }

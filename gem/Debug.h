@@ -8,6 +8,7 @@ class Debug
 
  public:
   static int setLevel(int level);
+  static int getLevel() { return debugLevel; };
   static void logf(int level, const char *fmt, ...);
 };
 

@@ -15,6 +15,7 @@ class MemoryDevice : public Device
 
   byte readByte(int addr);
   void writeByte(int addr, byte b);
+  bool canWrite(int addr);
 
   void _set(int addr, byte b);
 

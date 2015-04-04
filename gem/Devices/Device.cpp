@@ -3,6 +3,7 @@
 
 #include "../gem.h"
 #include "../Debug.h"
+#include "../Misc/Radix.h"
 
 #include "Device.h"
 #include "DeviceListener.h"
@@ -50,6 +51,7 @@ byte Device::peek(int addr)
 }
 
 void Device::writeByte(int addr, byte b) {
+  Debug::logf(10, "Device::writeByte(%d, 0x%02x)\n", addr, b);
 }
 
 void Device::poke(int addr, byte b)
@@ -63,8 +65,13 @@ void Device::poke(int addr, byte b)
     throw error;
   }
 
-  writeByte(addr, b);
-  fireWriteListener(addr, b);
+  if (!canWrite(addr)) {
+    Debug::logf(1, "can't write to address %s in %s\n", Radix::toString(addr, 16), getName());
+  }
+  else {
+    writeByte(addr, b);
+    fireWriteListener(addr, b);
+  }
 }
 
 bool Device::save(const char *loc, bool overwrite)
@@ -73,11 +80,11 @@ bool Device::save(const char *loc, bool overwrite)
   int addr = 0;
 
   if (fd) {
-	for (int i=0; i<size; i++) {
-	  fputc(readByte(i), fd);
+    for (int i=0; i<size; i++) {
+      fputc(readByte(i), fd);
     }
 
-	fclose(fd);
+    fclose(fd);
   }
 
   return true;
@@ -88,7 +95,11 @@ int Device::load(const char *loc)
   FILE *fd = fopen(loc, "rb");
   int addr = 0;
 
+  Debug::logf(2, "Loading from file %s\n", loc);
+  Debug::logf(4, "memory size is %d\n", size);
+
   if (fd) {
+    Debug::logf(4, "file opened ok\n", size);
     while ((addr < size) && (!feof(fd))) {
       int b = fgetc(fd);
 
@@ -100,6 +111,11 @@ int Device::load(const char *loc)
 
     fclose(fd);
   }
+  else {
+    Debug::logf(4, "failed to open file\n");
+  }
+
+  Debug::logf(1, "%d bytes loaded from file %s\n", addr, loc);
 
   return addr;
 }
